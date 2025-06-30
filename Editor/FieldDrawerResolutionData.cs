@@ -84,7 +84,14 @@ namespace Polymorphism4Unity.Editor
             }
             if (subtype.BaseType is not null)
             {
-                result.AddRange(propertyDrawers[subtype.BaseType]);
+                IReadOnlyList<PropertyDrawerData> dataItems = propertyDrawers[subtype.BaseType];
+                foreach (PropertyDrawerData data in dataItems)
+                {
+                    if (data.UseForChildren)
+                    {
+                        result.Add(data);
+                    }
+                }
             }
             return result;
         }
