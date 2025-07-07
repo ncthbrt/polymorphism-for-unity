@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Polymorphism4Unity.Editor
 {
-    public class SerializedPropertyDrawerData
+    internal class SerializedPropertyDrawerData
     {
         private static readonly ICachedEnumerable<Type> propertyDrawersTypes =
             TypeCache.GetTypesDerivedFrom<PropertyDrawer>().Where(x => x.IsConcreteType() && x.HasDefaultPublicConstructor()).Cached();

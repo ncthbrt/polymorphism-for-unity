@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace Polymorphism4Unity.Editor
 {
-    public interface ILazyDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>, IDisposable
+    internal interface ILazyDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>, IDisposable
     {
     }
 
-    public class LazyDictionary<TInput, TKey, TValue> : ILazyDictionary<TKey, TValue>
+    internal class LazyDictionary<TInput, TKey, TValue> : ILazyDictionary<TKey, TValue>
     {
         private interface IEnumerationState : IEnumerable<IEnumerationState>, IDisposable
         {

@@ -6,7 +6,7 @@ using System;
 namespace Polymorphism4Unity.Editor
 {
     [CustomPropertyDrawer(typeof(PolymorphicListAttribute), useForChildren: true)]
-    public class PolymorphicListPropertyDrawer : PropertyDrawer
+    internal class PolymorphicListPropertyDrawer : PropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {

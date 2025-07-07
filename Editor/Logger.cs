@@ -8,7 +8,7 @@ namespace Polymorphism4Unity.Editor
     /// Wrapper to allow centralised configuration of loggers in this package.
     /// Mirrors the <see cref="ILogger"/> <see langword="interface" /> except all fields and methods are <see langword="static" />.
     /// </summary>
-    public static class LoggerProvider
+    internal static class LoggerProvider
     {
         private static ILogger? currentLogger = Debug.unityLogger;
         public static ILogger Logger { set => currentLogger = value; }

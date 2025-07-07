@@ -4,8 +4,7 @@ using System.Collections.Generic;
 
 namespace Polymorphism4Unity.Editor
 {
-
-    public static class EnumerableUtils
+    internal static class EnumerableUtils
     {
         public static IEnumerable<T> FromSingleItem<T>(T item)
         {
@@ -34,8 +33,6 @@ namespace Polymorphism4Unity.Editor
             }
             yield break;
         }
-
-
 
         public static IEnumerable<TOut> SelectWhere<TIn, TOut>(this IEnumerable<TIn> enumerable, Func<TIn, (TOut? maybeResult, bool include)> f)
         {

@@ -5,14 +5,14 @@ using System.Reflection;
 
 namespace Polymorphism4Unity.Editor
 {
-    public interface IDynamicInstance
+    internal interface IDynamicInstance
     {
         object? this[string memberName] { get; }
         bool TryGetValue(string memberName, Type expectedType, out object? result);
         bool TryGetValue<TExpectedResult>(string memberName, out TExpectedResult? result);
     }
 
-    public class DynamicInstance<TBaseType> : IDynamicInstance
+    internal class DynamicInstance<TBaseType> : IDynamicInstance
     {
         const BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance;
         const MemberTypes memberTypes = MemberTypes.Property | MemberTypes.Field;

@@ -6,7 +6,7 @@ using static Polymorphism4Unity.Asserts;
 
 namespace Polymorphism4Unity.Editor
 {
-    public interface ICachedEnumerable<TElement> : IEnumerable<TElement>
+    internal interface ICachedEnumerable<TElement> : IEnumerable<TElement>
     {
         public ICachedEnumerable<TElement> Head { get; }
         public ICachedEnumerable<TElement>? Next { get; }
@@ -33,7 +33,7 @@ namespace Polymorphism4Unity.Editor
         }
     }
 
-    class WrappedCachedEnumerable<TElement> : ICachedEnumerable<TElement>
+    internal class WrappedCachedEnumerable<TElement> : ICachedEnumerable<TElement>
     {
         public ICachedEnumerable<TElement> Head { get; protected set; }
         private ICachedEnumerable<TElement> inner;
@@ -88,7 +88,7 @@ namespace Polymorphism4Unity.Editor
         }
     }
 
-    class NotStartedCachedEnumerable<TElement> : ICachedEnumerable<TElement>
+    internal class NotStartedCachedEnumerable<TElement> : ICachedEnumerable<TElement>
     {
         public IEnumerable<TElement> Enumerable { get; private set; }
         public ICachedEnumerable<TElement> Head { get; }
@@ -111,7 +111,7 @@ namespace Polymorphism4Unity.Editor
         }
     }
 
-    class CachedCachedEnumerable<TElement> : ICachedEnumerable<TElement>
+    internal class CachedCachedEnumerable<TElement> : ICachedEnumerable<TElement>
     {
         public ICachedEnumerable<TElement> Head { get; protected set; }
 
@@ -126,7 +126,7 @@ namespace Polymorphism4Unity.Editor
         }
     }
 
-    class EnumeratingCachedEnumerable<TElement> : ICachedEnumerable<TElement>
+    internal class EnumeratingCachedEnumerable<TElement> : ICachedEnumerable<TElement>
     {
         public ICachedEnumerable<TElement> Head { get; protected set; }
         public IEnumerator<TElement> Enumerator { get; private set; }
@@ -156,7 +156,7 @@ namespace Polymorphism4Unity.Editor
         }
     }
 
-    class ErrorCachedEnumerable<TElement> : ICachedEnumerable<TElement>
+    internal class ErrorCachedEnumerable<TElement> : ICachedEnumerable<TElement>
     {
         public ICachedEnumerable<TElement> Head { get; protected set; }
 
@@ -184,7 +184,4 @@ namespace Polymorphism4Unity.Editor
             }
         }
     }
-
-
-
 }

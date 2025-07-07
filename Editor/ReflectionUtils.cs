@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Polymorphism4Unity.Editor
 {
-    public static partial class ReflectionUtils
+    internal static partial class ReflectionUtils
     {
         /// <summary>
         /// Evalauates whether <paramref name="t"/> is a type that can be constructed.

@@ -6,7 +6,7 @@ using UnityEditor;
 
 namespace Polymorphism4Unity.Editor
 {
-    public class DrawerData
+    internal class DrawerData
     {
         public enum DrawerKind
         {
