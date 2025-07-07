@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.ncthbrt.polymorphic-editor-tools": "https://github.com/ncthbrt/unity-polymorphic-editor-tools.git",
+    "com.ncthbrt.polymorphism-for-unity": "https://github.com/ncthbrt/polymorphism-for-unity.git",
     "com.unity.collab-proxy": "1.2.16",
     "com.unity.ide.rider": "1.1.4",
     "com.unity.ide.vscode": "1.2.1",
@@ -41,6 +41,6 @@
     "com.unity.modules.xr": "1.0.0"
   },
   "testables": [
-    "com.ncthbrt.polymorphic-editor-tools"
+    "com.ncthbrt.polymorphism-for-unity"
   ]
 }

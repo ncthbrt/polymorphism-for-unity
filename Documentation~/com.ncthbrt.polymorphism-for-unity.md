@@ -1,4 +1,4 @@
-# Polymorphic Editor Tools
+# Polymorphism for Unity
 
 Low ceremony package for working with polymorphic types in the unity editor
 

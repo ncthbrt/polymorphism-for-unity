@@ -2,9 +2,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using static PolymorphicEditorTools.Editor.Asserts;
+using static Polymorphism4Unity.Editor.Asserts;
 
-namespace PolymorphicEditorTools.Editor
+namespace Polymorphism4Unity.Editor
 {
     public interface ICachedEnumerable<TElement> : IEnumerable<TElement>
     {

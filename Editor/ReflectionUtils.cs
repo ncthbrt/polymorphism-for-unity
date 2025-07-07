@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace PolymorphicEditorTools.Editor
+namespace Polymorphism4Unity.Editor
 {
     public static partial class ReflectionUtils
     {
@@ -53,23 +53,7 @@ namespace PolymorphicEditorTools.Editor
             return parentType.IsAssignableFrom(childType);
         }
 
-        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> enumerable)
-        {
-            foreach (T? value in enumerable)
-            {
-                if (value is not null)
-                {
-                    yield return value;
-                }
-            }
-            yield break;
-        }
-
-        public static void Reset()
-        {
-            ResetPropertyDrawers();
-            ResetExportedTypes();
-            ResetReflectedAccess();
-        }
+        public static IDynamicInstance ToDynamicInstance<TBaseType>(this TBaseType value) =>
+            new DynamicInstance<TBaseType>(value);
     }
 }

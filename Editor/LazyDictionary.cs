@@ -4,11 +4,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace PolymorphicEditorTools.Editor
+namespace Polymorphism4Unity.Editor
 {
-    public interface ILazyDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDisposable
+    public interface ILazyDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>, IDisposable
     {
-        void LazyRemove(TKey key);
     }
 
     public class LazyDictionary<TInput, TKey, TValue> : ILazyDictionary<TKey, TValue>
@@ -65,12 +64,10 @@ namespace PolymorphicEditorTools.Editor
 
         private sealed class EnumeratingEnumerationState : IEnumerationState, IDisposable
         {
-            private IEnumerator<TInput>? enumerator;
-            private Func<TInput, TKey> keyMapper;
+            private readonly IEnumerator<TInput> enumerator;
+            private readonly Func<TInput, TKey> keyMapper;
             private readonly Func<TInput, TValue> valueMapper;
-            public Dictionary<TKey, TValue> LaterAdditions { get; } = new();
             public Dictionary<TKey, TValue> Dictionary { get; } = new();
-            public HashSet<TKey> Removals { get; } = new();
             public bool Disposed { get; private set; } = false;
 
             public EnumeratingEnumerationState(IEnumerator<TInput> enumerator, Func<TInput, TKey> keyMapper, Func<TInput, TValue> valueMapper)
@@ -80,55 +77,26 @@ namespace PolymorphicEditorTools.Editor
                 this.valueMapper = valueMapper;
             }
 
-            public void LazyRemove(TKey key)
-            {
-                Removals.Add(key);
-                LaterAdditions.Remove(key);
-                Dictionary.Remove(key);
-            }
-
-            public void LazyOverwrite(TKey key, TValue value)
-            {
-                Removals.Remove(key);
-                LaterAdditions.Remove(key);
-                Dictionary[key] = value;
-            }
-
             public (IEnumerationState nextState, (TKey key, TValue value)? keyValue) TryPullNextElement()
             {
                 try
                 {
-                    if (enumerator is not null)
+                    TInput element = enumerator.Current;
+                    TKey key = keyMapper(element);
+                    (TKey key, TValue value)? keyValue = null;
+                    if (!Dictionary.ContainsKey(key))
                     {
-                        TInput element = enumerator.Current;
-                        TKey key = keyMapper(element);
-                        (TKey key, TValue value)? keyValue = null;
-                        if (!Removals.Contains(key) && !Dictionary.ContainsKey(key))
-                        {
-                            LaterAdditions.Remove(key);
-                            TValue value = valueMapper(element);
-                            Dictionary[key] = value;
-                            keyValue = (key, value);
-                        }
-                        if (enumerator.MoveNext())
-                        {
-                            return (this, keyValue);
-                        }
-                        else
-                        {
-                            Dispose();
-                        }
-                    }
-                    if (LaterAdditions.Count > 0)
-                    {
-                        TKey key = LaterAdditions.First().Key;
-                        TValue value = LaterAdditions[key];
-                        Asserts.IsTrue(LaterAdditions.Remove(key));
+                        TValue value = valueMapper(element);
                         Dictionary[key] = value;
-                        return (this, (key, value));
+                        keyValue = (key, value);
+                    }
+                    if (enumerator.MoveNext())
+                    {
+                        return (this, keyValue);
                     }
                     else
                     {
+                        Dispose();
                         return (new CompletedEnumerationState(Dictionary), default);
                     }
                 }
@@ -146,12 +114,10 @@ namespace PolymorphicEditorTools.Editor
                 {
                     try
                     {
-                        enumerator?.Dispose();
-                        Removals.Clear();
+                        enumerator.Dispose();
                     }
                     finally
                     {
-                        enumerator = null;
                         Disposed = true;
                     }
                 }
@@ -234,21 +200,6 @@ namespace PolymorphicEditorTools.Editor
             state = new NotStartedEnumerationState(enumerable, keyMapper, valueMapper);
         }
 
-        public void LazyRemove(TKey key)
-        {
-            EnsurePreconditions();
-            if (state is CompletedEnumerationState completed)
-            {
-                _ = completed.Dictionary.Remove(key);
-            }
-            else if (state is EnumeratingEnumerationState enumerating)
-            {
-                enumerating.LazyRemove(key);
-            }
-            throw StateFailsPostCondition();
-        }
-
-
         public TValue this[TKey key]
         {
             get
@@ -260,11 +211,7 @@ namespace PolymorphicEditorTools.Editor
                 }
                 if (state is EnumeratingEnumerationState enumerating)
                 {
-                    if (enumerating.Removals.Contains(key))
-                    {
-                        return default!;
-                    }
-                    else if (enumerating.Dictionary.TryGetValue(key, out TValue? value))
+                    if (enumerating.Dictionary.TryGetValue(key, out TValue? value))
                     {
                         return value;
                     }
@@ -281,19 +228,6 @@ namespace PolymorphicEditorTools.Editor
                 }
                 throw StateFailsPostCondition();
             }
-            set
-            {
-                EnsurePreconditions();
-                if (state is CompletedEnumerationState completed)
-                {
-                    completed.Dictionary[key] = value!;
-                }
-                if (state is EnumeratingEnumerationState enumerating)
-                {
-                    enumerating.LazyOverwrite(key, value!);
-                }
-                throw StateFailsPostCondition();
-            }
         }
 
         public ICollection<TKey> Keys =>
@@ -304,16 +238,11 @@ namespace PolymorphicEditorTools.Editor
 
         public int Count => Force().Dictionary.Count;
 
-        public bool IsReadOnly => false;
+        public bool IsReadOnly => true;
 
         IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys => Keys;
 
         IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => Values;
-
-        public void Add(TKey key, TValue value) => Force().Dictionary.Add(key, value);
-
-        public void Add(KeyValuePair<TKey, TValue> item) =>
-           ((ICollection<KeyValuePair<TKey, TValue>>)Force().Dictionary).Add(item);
 
         public void Clear()
         {
@@ -322,10 +251,10 @@ namespace PolymorphicEditorTools.Editor
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item) =>
-            ((ICollection<KeyValuePair<TKey, TValue>>)Force().Dictionary).Contains(item);
+            TryGetValue(item.Key, out TValue? value) && Equals(item.Value, value);
 
         public bool ContainsKey(TKey key) =>
-            Force().Dictionary.ContainsKey(key);
+            TryGetValue(key, out _);
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) =>
             ((ICollection<KeyValuePair<TKey, TValue>>)Force().Dictionary).CopyTo(array, arrayIndex);
@@ -363,9 +292,6 @@ namespace PolymorphicEditorTools.Editor
             }
         }
 
-        public bool Remove(TKey key) =>
-            Force().Dictionary.Remove(key);
-
 #pragma warning disable CS8767 // out value needs to be nullable (TValue?) for this contract to make sense
         public bool TryGetValue(TKey key, out TValue? value)
         {
@@ -376,12 +302,7 @@ namespace PolymorphicEditorTools.Editor
             }
             else if (state is EnumeratingEnumerationState enumerating)
             {
-                if (enumerating.Removals.Contains(key))
-                {
-                    value = default;
-                    return false;
-                }
-                else if (enumerating.Dictionary.TryGetValue(key, out value))
+                if (enumerating.Dictionary.TryGetValue(key, out value))
                 {
                     return true;
                 }
@@ -398,7 +319,7 @@ namespace PolymorphicEditorTools.Editor
                     return false;
                 }
             }
-            throw Asserts.Fail($"{nameof(state)} is {nameof(EnumeratingEnumerationState)} or ${nameof(CompletedEnumerationState)}");
+            throw StateFailsPostCondition();
         }
 #pragma warning restore CS8767
 
@@ -462,8 +383,5 @@ namespace PolymorphicEditorTools.Editor
             }
             return Asserts.IsType<IEnumerationState, CompletedEnumerationState>(state);
         }
-
-        public bool Remove(KeyValuePair<TKey, TValue> item) =>
-            ((ICollection<KeyValuePair<TKey, TValue>>)Force().Dictionary).Remove(item);
     }
 }

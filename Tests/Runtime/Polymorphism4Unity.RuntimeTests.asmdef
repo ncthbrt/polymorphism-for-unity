@@ -1,8 +1,8 @@
 {
-  "name": "PolymorphicEditorTools.Tests",
+  "name": "Polymorphism4Unity.RuntimeTests",
   "references": [
-    "PolymorphicEditorTools.Abstractions",
-    "PolymorphicEditorTools.Editor"
+    "Polymorphism4Unity.Abstractions",
+    "Polymorphism4Unity.Editor"
   ],
   "optionalUnityReferences": [
     "TestAssemblies"

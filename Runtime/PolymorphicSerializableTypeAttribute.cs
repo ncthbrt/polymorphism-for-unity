@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
 
-namespace PolymorphicEditorTools.Abstractions
+namespace Polymorphism4Unity.Abstractions
 {
-    public class PolymorphicSerializableTypeAttribute : PropertyAttribute
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field)]
+    public class PolymorphicTypeAttribute : PropertyAttribute
     {
     }
 }

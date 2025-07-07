@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "com.ncthbrt.polymorphic-editor-tools": "https://github.com/ncthbrt/unity-polymorphic-editor-tools.git",
     "com.unity.ide.rider": "3.0.36",
     "com.unity.ide.visualstudio": "2.0.23",
     "com.unity.modules.accessibility": "1.0.0",
@@ -37,6 +36,6 @@
     "com.unity.modules.xr": "1.0.0"
   },
   "testables": [
-    "com.ncthbrt.polymorphic-editor-tools"
+    "com.ncthbrt.polymorphism-for-unity"
   ]
 }

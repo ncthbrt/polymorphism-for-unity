@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 
-namespace PolymorphicEditorTools.Editor
+namespace Polymorphism4Unity.Editor
 {
     /// <summary>
     /// Wrapper to allow centralised configuration of loggers in this package.

@@ -1,7 +1,8 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 
-namespace PolymorphicEditorTools.Editor
+namespace Polymorphism4Unity.Editor
 {
 
     public static class EnumerableUtils
@@ -20,6 +21,33 @@ namespace PolymorphicEditorTools.Editor
         {
             ICachedEnumerable<TElement> inner = new NotStartedCachedEnumerable<TElement>(enumerable);
             return new WrappedCachedEnumerable<TElement>(inner);
+        }
+
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> enumerable)
+        {
+            foreach (T? value in enumerable)
+            {
+                if (value is not null)
+                {
+                    yield return value;
+                }
+            }
+            yield break;
+        }
+
+
+
+        public static IEnumerable<TOut> SelectWhere<TIn, TOut>(this IEnumerable<TIn> enumerable, Func<TIn, (TOut? maybeResult, bool include)> f)
+        {
+            foreach (TIn input in enumerable)
+            {
+                (TOut? maybeResult, bool include) = f(input);
+                if (include)
+                {
+                    TOut result = Asserts.IsNotNull(maybeResult);
+                    yield return result;
+                }
+            }
         }
     }
 }

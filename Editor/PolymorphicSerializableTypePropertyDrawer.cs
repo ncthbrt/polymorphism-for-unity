@@ -1,11 +1,11 @@
 #nullable enable
 using UnityEngine;
 using UnityEditor;
-using PolymorphicEditorTools.Abstractions;
+using Polymorphism4Unity.Abstractions;
 
-namespace PolymorphicEditorTools.Editor
+namespace Polymorphism4Unity.Editor
 {
-    [CustomPropertyDrawer(typeof(PolymorphicSerializableTypeAttribute), useForChildren: false)]
+    [CustomPropertyDrawer(typeof(PolymorphicTypeAttribute), useForChildren: false)]
     public class PolymorphicSerializableTypePropertyDrawer : PropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)

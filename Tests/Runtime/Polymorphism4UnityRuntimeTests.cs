@@ -5,9 +5,9 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
-namespace Tests.Editor
+namespace Polymorphism4Unity.RuntimeTests
 {
-    public class Polymorphic Editor ToolsTests
+    public class Polymorphism4UnityRuntimeTests
     {
         [SetUp]
         public void Setup()

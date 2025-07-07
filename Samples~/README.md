@@ -13,8 +13,8 @@ since Unity does not provide standalone package testing solution.
 ```json
 {
   "dependencies": {
-    "com.ncthbrt.polymorphic-editor-tools": "https://github.com/ncthbrt/polymorphic-editor-tools.git"
+    "com.ncthbrt.polymorphism-for-unity": "https://github.com/ncthbrt/polymorphism-for-unity.git"
   },
-  "testables": [ "com.ncthbrt.polymorphic-editor-tools" ]
+  "testables": [ "com.ncthbrt.polymorphism-for-unity" ]
 }
 ```

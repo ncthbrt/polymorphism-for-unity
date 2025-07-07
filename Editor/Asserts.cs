@@ -1,7 +1,7 @@
 #nullable enable
 using System;
 
-namespace PolymorphicEditorTools.Editor
+namespace Polymorphism4Unity.Editor
 {
     public static class Asserts
     {

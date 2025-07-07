@@ -1,7 +1,8 @@
 {
-  "name": "Unity.com.ncthbrt.polymorphic-editor-tools.Editor.Tests",
+  "name": "Polymorphism4Unity.EditorTests",
   "references": [
-    "Unity.com.ncthbrt.polymorphic-editor-tools"
+    "Polymorphism4Unity.Editor",
+    "Polymorphism4Unity.Abstractions"
   ],
   "optionalUnityReferences": [
     "TestAssemblies"

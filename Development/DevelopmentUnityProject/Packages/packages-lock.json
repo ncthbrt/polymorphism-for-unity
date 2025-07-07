@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "com.ncthbrt.polymorphic-editor-tools": {
-      "version": "file:com.ncthbrt.polymorphic-editor-tools",
+    "com.ncthbrt.polymorphism-for-unity": {
+      "version": "file:com.ncthbrt.polymorphism-for-unity",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
