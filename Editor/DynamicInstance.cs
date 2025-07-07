@@ -5,14 +5,16 @@ using System.Reflection;
 
 namespace Polymorphism4Unity.Editor
 {
-    internal interface IDynamicInstance
+    internal interface IDynamicReadonlyInstance
     {
         object? this[string memberName] { get; }
         bool TryGetValue(string memberName, Type expectedType, out object? result);
         bool TryGetValue<TExpectedResult>(string memberName, out TExpectedResult? result);
+        TExpectedResult? GetValue<TExpectedResult>(string memberName);
+        object? GetValue(string memberName, Type expectedType);
     }
 
-    internal class DynamicInstance<TBaseType> : IDynamicInstance
+    internal class DynamicReadonlyInstance<TBaseType> : IDynamicReadonlyInstance
     {
         const BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance;
         const MemberTypes memberTypes = MemberTypes.Property | MemberTypes.Field;
@@ -32,7 +34,7 @@ namespace Polymorphism4Unity.Editor
         }
 
         private readonly TBaseType value;
-        public DynamicInstance(TBaseType value)
+        public DynamicReadonlyInstance(TBaseType value)
         {
             this.value = value;
         }
@@ -58,7 +60,7 @@ namespace Polymorphism4Unity.Editor
                         continue;
                     }
                 }
-                return null;
+                throw MemberNotFound(memberName);
             }
         }
 
@@ -110,10 +112,14 @@ namespace Polymorphism4Unity.Editor
                 {
                     switch (memberInfo)
                     {
-
                         case PropertyInfo propertyInfo:
                             {
                                 object? propertyValue = propertyInfo.GetValue(value);
+                                if (propertyValue is null)
+                                {
+                                    result = default;
+                                    return true;
+                                }
                                 if (propertyValue is TExpectedResult expectedResult)
                                 {
                                     result = expectedResult;
@@ -124,6 +130,11 @@ namespace Polymorphism4Unity.Editor
                         case FieldInfo fieldInfo:
                             {
                                 object? fieldValue = fieldInfo.GetValue(value);
+                                if (fieldValue is null)
+                                {
+                                    result = default;
+                                    return true;
+                                }
                                 if (fieldValue is TExpectedResult expectedResult)
                                 {
                                     result = expectedResult;
@@ -141,5 +152,23 @@ namespace Polymorphism4Unity.Editor
             result = default;
             return false;
         }
+
+        private Exception MemberNotFound(string memberName, Type expectedType) =>
+            new KeyNotFoundException($"Could not find value of member with name {memberName} and assignable to type {expectedType.Name} inside {typeof(TBaseType).FullName}.");
+
+        private Exception MemberNotFound(string memberName) =>
+            new KeyNotFoundException($"Could not find value of member with name {memberName} inside type {typeof(TBaseType).FullName}.");
+
+        public TExpectedResult? GetValue<TExpectedResult>(string memberName) =>
+            TryGetValue(memberName, out TExpectedResult? result)
+                ? result!
+                : throw MemberNotFound(memberName, typeof(TExpectedResult));
+
+        public object? GetValue(string memberName, Type expectedType) =>
+             TryGetValue(memberName, expectedType, out object? result)
+                ? result
+                : throw MemberNotFound(memberName, expectedType);
     }
+
+
 }

@@ -8,19 +8,9 @@ using UnityEngine;
 
 namespace Polymorphism4Unity
 {
-    public interface IKindSet<TBaseKind> : IEnumerable<TBaseKind>, ICollection<TBaseKind>
-    {
-        TBaseKind this[Type t] { get; set; }
-        TBaseKind this[int i] { get; }
-        IEnumerable<Type> Types { get; }
-        IEnumerable<TBaseKind> Values { get; }
-        bool Contains(Type subkind);
-        bool Remove(Type kind);
-        bool Remove<TSubkind>() where TSubkind : TBaseKind;
-    }
 
-    [Serializable, KindSet]
-    public abstract class KindSet<TBaseKind> : ISerializationCallbackReceiver, IEnumerable<TBaseKind>, ICollection<TBaseKind>, IKindSet<TBaseKind>
+    [Serializable]
+    public abstract class KindSet<TBaseKind> : ISerializationCallbackReceiver, IEnumerable<TBaseKind>, ICollection<TBaseKind>
     {
         [SerializeReference]
         private TBaseKind[] backingValues = new TBaseKind[0];

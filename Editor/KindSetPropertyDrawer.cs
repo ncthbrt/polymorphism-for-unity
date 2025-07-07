@@ -4,7 +4,7 @@ using UnityEditor;
 
 namespace Polymorphism4Unity.Editor
 {
-    [CustomPropertyDrawer(typeof(KindSetAttribute), useForChildren: true)]
+    [CustomPropertyDrawer(typeof(KindSet<>), useForChildren: true)]
     public class KindSetPropertyDrawer : PropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)

@@ -1,11 +1,10 @@
 #nullable enable
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Polymorphism4Unity.Editor
 {
-     public class Cache<TArg, TResult> : IReadOnlyCollection<TResult>
+     public class Cache<TArg, TResult>
      {
           private readonly Dictionary<object, TResult> values = new();
           private readonly Func<TArg, TResult> factory;
@@ -13,7 +12,6 @@ namespace Polymorphism4Unity.Editor
 
           public Cache(Func<TArg, TResult> factory) : this(factory, static arg => arg!)
           {
-
           }
 
           public Cache(Func<TArg, TResult> factory, Func<TArg, object> keySelector)
@@ -22,44 +20,34 @@ namespace Polymorphism4Unity.Editor
                this.keySelector = keySelector;
           }
 
-          public TResult this[TArg arg]
+          public TResult this[TArg arg] => GetValue(arg);
+
+          public TResult GetValue(TArg arg)
           {
-               get
+               object key = keySelector(arg);
+               if (values.TryGetValue(key, out TResult result))
                {
-                    object key = keySelector(arg);
-                    if (values.TryGetValue(key, out TResult result))
-                    {
-                         return result;
-                    }
-                    result = factory(arg);
-                    values[key] = result;
                     return result;
                }
+               result = factory(arg);
+               values[key] = result;
+               return result;
           }
 
-          public IEnumerable<TResult> Values => values.Values;
-          public int Count => values.Count;
-
-          public bool ContainsKey(TArg arg)
+          public bool AlreadyContainsCachedValue(TArg arg)
           {
                object key = keySelector(arg);
                return values.ContainsKey(key);
           }
 
-          public bool TryGetValue(TArg arg, out TResult? value)
-          {
-               object key = keySelector(arg);
-               return values.TryGetValue(key, out value);
-          }
+          public IEnumerable<TResult> Values => values.Values;
+          public int Count => values.Count;
 
-          public IEnumerator<TResult> GetEnumerator()
-          {
-               return values.Values.GetEnumerator();
-          }
+          public static implicit operator Func<TArg, TResult>(Cache<TArg, TResult> thisCache) => thisCache.GetValue;
 
-          IEnumerator IEnumerable.GetEnumerator()
+          public void Clear()
           {
-               return GetEnumerator();
+               values.Clear();
           }
      }
 }

@@ -2,186 +2,140 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using static Polymorphism4Unity.Asserts;
-
 namespace Polymorphism4Unity.Editor
 {
-    internal interface ICachedEnumerable<TElement> : IEnumerable<TElement>
+    internal class CachedEnumerable<TElement> : IEnumerable<TElement>
     {
-        public ICachedEnumerable<TElement> Head { get; }
-        public ICachedEnumerable<TElement>? Next { get; }
-        public TElement Value { get; }
+        private interface ICachedEnumerableState
+        {
+            public ICachedEnumerableState? Next { get; }
+            public TElement Current { get; }
+        }
+
+        private class NotStartedCachedEnumerableState : ICachedEnumerableState
+        {
+            public IEnumerable<TElement> Enumerable { get; private set; }
+
+            public ICachedEnumerableState? Next
+            {
+                get
+                {
+                    try
+                    {
+                        return new EnumeratingCachedEnumerableState(Enumerable.GetEnumerator());
+                    }
+                    catch (Exception e)
+                    {
+                        return new ErrorCachedEnumerableState(e);
+                    }
+                }
+            }
+
+
+            public TElement Current
+            {
+                get
+                {
+                    throw new NotImplementedException("Cannot pull value from NotStartedCachedEnumerable");
+                }
+            }
+
+            public NotStartedCachedEnumerableState(IEnumerable<TElement> enumerable)
+            {
+                Enumerable = enumerable;
+            }
+        }
+
+        private class EnumeratingCachedEnumerableState : ICachedEnumerableState
+        {
+            public IEnumerator<TElement> Enumerator { get; }
+            public EnumeratingCachedEnumerableState(IEnumerator<TElement> enumerator)
+            {
+                Enumerator = enumerator;
+            }
+            public TElement Current => Enumerator.Current;
+            public ICachedEnumerableState? Next =>
+                Enumerator.MoveNext() ? this : null;
+        }
+
+        private class ErrorCachedEnumerableState : ICachedEnumerableState
+        {
+            public Exception Exception { get; private set; }
+
+            public ErrorCachedEnumerableState(Exception exception)
+            {
+                Exception = exception;
+            }
+
+            public ICachedEnumerableState? Next => throw Asserts.Never($"{nameof(Next)} should never be called");
+            public TElement Current => throw Asserts.Never($"{nameof(Current)} should never be called");
+        }
+
+        private List<TElement> cache = new();
+        private ICachedEnumerableState? state;
+
+        public CachedEnumerable(IEnumerable<TElement> enumerable)
+        {
+            state = new NotStartedCachedEnumerableState(enumerable);
+        }
+
+        private ICachedEnumerableState? EnsureAndValidatePreconditions()
+        {
+            if (state is NotStartedCachedEnumerableState notStarted)
+            {
+                state = Asserts.IsNotNull(notStarted.Next);
+                if (state is ErrorCachedEnumerableState err)
+                {
+                    throw err.Exception;
+                }
+            }
+            Asserts.IsTrue(state is null or EnumeratingCachedEnumerableState or ErrorCachedEnumerableState);
+            return state;
+        }
+
+        private void ValidatePostConditions()
+        {
+            Asserts.IsNull(state);
+        }
+
+        private void ValidationEnumerationInvariant()
+        {
+            if (state is ErrorCachedEnumerableState err)
+            {
+                throw err.Exception;
+            }
+            Asserts.IsNotNull(state);
+            Asserts.IsType<EnumeratingCachedEnumerableState>(state!);
+        }
+
+        public IEnumerator<TElement> GetEnumerator()
+        {
+            EnsureAndValidatePreconditions();
+            foreach (TElement item in cache)
+            {
+                yield return item;
+            }
+            while (state is EnumeratingCachedEnumerableState enumerating)
+            {
+                ValidationEnumerationInvariant();
+                try
+                {
+                    TElement item = enumerating.Current;
+                    cache.Add(item);
+                    state = state.Next;
+                }
+                catch (Exception e)
+                {
+                    state = new ErrorCachedEnumerableState(e);
+                }
+            }
+            Asserts.IsNull(state);
+            ValidatePostConditions();
+        }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        IEnumerator<TElement> IEnumerable<TElement>.GetEnumerator()
-        {
-            ICachedEnumerable<TElement>? current = this;
-            do
-            {
-                yield return current.Value;
-                current = current.Next;
-                if (current is null)
-                {
-                    yield break;
-                }
-            }
-            while (true);
-        }
-    }
-
-    internal class WrappedCachedEnumerable<TElement> : ICachedEnumerable<TElement>
-    {
-        public ICachedEnumerable<TElement> Head { get; protected set; }
-        private ICachedEnumerable<TElement> inner;
-
-        public WrappedCachedEnumerable(ICachedEnumerable<TElement> inner)
-        {
-            Head = this;
-            this.inner = inner;
-        }
-
-        public WrappedCachedEnumerable(ICachedEnumerable<TElement> inner, ICachedEnumerable<TElement> head)
-        {
-            Head = head;
-            this.inner = inner;
-        }
-
-        public TElement Value
-        {
-            get
-            {
-
-                MaybeCacheValue();
-                return inner.Value;
-            }
-        }
-
-        public ICachedEnumerable<TElement>? Next
-        {
-            get
-            {
-                MaybeCacheValue();
-                return inner.Next;
-            }
-        }
-
-        private void MaybeCacheValue()
-        {
-            if (inner is NotStartedCachedEnumerable<TElement> notStarted)
-            {
-                inner = IsNotNull(notStarted.Next);
-            }
-            if (inner is not CachedCachedEnumerable<TElement>)
-            {
-                TElement value = inner.Value;
-                ICachedEnumerable<TElement>? next = Next;
-                if (next is not null)
-                {
-                    next = new WrappedCachedEnumerable<TElement>(next);
-                }
-                inner = new CachedCachedEnumerable<TElement>(value, next, Head);
-            }
-        }
-    }
-
-    internal class NotStartedCachedEnumerable<TElement> : ICachedEnumerable<TElement>
-    {
-        public IEnumerable<TElement> Enumerable { get; private set; }
-        public ICachedEnumerable<TElement> Head { get; }
-
-        public ICachedEnumerable<TElement>? Next =>
-            new EnumeratingCachedEnumerable<TElement>(Enumerable.GetEnumerator(), Head);
-
-        public TElement Value
-        {
-            get
-            {
-                throw new NotImplementedException("Cannot pull value from NotStartedCachedEnumerable");
-            }
-        }
-
-        public NotStartedCachedEnumerable(IEnumerable<TElement> enumerable)
-        {
-            Enumerable = enumerable;
-            Head = this;
-        }
-    }
-
-    internal class CachedCachedEnumerable<TElement> : ICachedEnumerable<TElement>
-    {
-        public ICachedEnumerable<TElement> Head { get; protected set; }
-
-        public TElement Value { get; }
-        public ICachedEnumerable<TElement>? Next { get; set; }
-
-        public CachedCachedEnumerable(TElement value, ICachedEnumerable<TElement>? next, ICachedEnumerable<TElement> head)
-        {
-            Value = value;
-            Next = next;
-            Head = head;
-        }
-    }
-
-    internal class EnumeratingCachedEnumerable<TElement> : ICachedEnumerable<TElement>
-    {
-        public ICachedEnumerable<TElement> Head { get; protected set; }
-        public IEnumerator<TElement> Enumerator { get; private set; }
-        private TElement? value = default;
-
-        public TElement Value => value ??= Enumerator.Current;
-
-        public ICachedEnumerable<TElement>? Next
-        {
-            get
-            {
-                if (!Enumerator.MoveNext())
-                {
-                    return null;
-                }
-                else
-                {
-                    return new EnumeratingCachedEnumerable<TElement>(Enumerator, Head);
-                }
-            }
-        }
-
-        public EnumeratingCachedEnumerable(IEnumerator<TElement> enumerator, ICachedEnumerable<TElement> head)
-        {
-            Enumerator = enumerator;
-            Head = head;
-        }
-    }
-
-    internal class ErrorCachedEnumerable<TElement> : ICachedEnumerable<TElement>
-    {
-        public ICachedEnumerable<TElement> Head { get; protected set; }
-
-        public Exception Exception { get; private set; }
-
-        public ErrorCachedEnumerable(Exception exception, ICachedEnumerable<TElement> head)
-        {
-            Exception = exception;
-            Head = head;
-        }
-
-        public ICachedEnumerable<TElement>? Next
-        {
-            get
-            {
-                throw Exception;
-            }
-        }
-
-        public TElement Value
-        {
-            get
-            {
-                throw Exception;
-            }
         }
     }
 }

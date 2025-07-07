@@ -1,12 +1,10 @@
 #nullable enable
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace Polymorphism4Unity.Editor
 {
-    internal static partial class ReflectionUtils
+    internal static class TypeUtils
     {
         /// <summary>
         /// Evalauates whether <paramref name="t"/> is a type that can be constructed.
@@ -38,22 +36,18 @@ namespace Polymorphism4Unity.Editor
         public static bool HasDefaultPublicConstructor(this Type t) =>
             t.MaybeGetDefaultPublicConstructor() is not null;
 
-        public static IEnumerable<Type> GetConcreteSubtypes<TBaseType>()
-        {
-            return Enumerable.Empty<Type>();
-        }
+        public static bool Is<TParentType>(this Type childType) =>
+            typeof(TParentType).IsAssignableFrom(childType);
+        public static bool IsNot<TParentType>(this Type childType) =>
+            !typeof(TParentType).IsAssignableFrom(childType);
 
-        public static bool Is<TParentType>(this Type childType)
-        {
-            return typeof(TParentType).IsAssignableFrom(childType);
-        }
+        public static bool Is(this Type childType, Type parentType) =>
+            parentType.IsAssignableFrom(childType);
 
-        public static bool Is(this Type childType, Type parentType)
-        {
-            return parentType.IsAssignableFrom(childType);
-        }
+        public static bool IsNot(this Type childType, Type parentType) =>
+            !parentType.IsAssignableFrom(childType);
 
-        public static IDynamicInstance ToDynamicInstance<TBaseType>(this TBaseType value) =>
-            new DynamicInstance<TBaseType>(value);
+        public static IDynamicReadonlyInstance ToDynamicReadonlyInstance<TBaseType>(this TBaseType value) =>
+            new DynamicReadonlyInstance<TBaseType>(value);
     }
 }

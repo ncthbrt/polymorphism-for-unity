@@ -381,7 +381,7 @@ namespace Polymorphism4Unity.Editor
                 state = newState;
                 ThrowIfErrorOrDisposedState();
             }
-            return Asserts.IsType<IEnumerationState, CompletedEnumerationState>(state);
+            return Asserts.IsType<CompletedEnumerationState>(state);
         }
     }
 }

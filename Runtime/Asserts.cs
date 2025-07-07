@@ -67,6 +67,11 @@ namespace Polymorphism4Unity
             throw new AssertionException(assertion);
         }
 
+        public static Exception Never(string assertion)
+        {
+            throw new AssertionException(assertion);
+        }
+
         public static T IsNotNull<T>(T? a)
         {
             if (a is null)
@@ -164,20 +169,37 @@ namespace Polymorphism4Unity
             return false;
         }
 
-        public static TB IsType<TA, TB>(TA a)
-            where TB : TA
+        public static T IsType<T>(object a)
         {
-            if (a is not TB b)
+            if (a is not T b)
             {
-                throw new BinaryAssertionException<TA, Type>(a, typeof(TB), $"a is {typeof(TB).Name}");
+                throw new BinaryAssertionException<object, Type>(a, typeof(T), $"a is {typeof(T).Name}");
             }
             return b;
         }
 
-        public static TB? IsTypeOrNull<TA, TB>(TA? a)
-            where TB : class?, TA
+        public static bool IsType<T>(Type a)
         {
-            if (a is TB b)
+            if (!typeof(T).IsAssignableFrom(a))
+            {
+                throw new BinaryAssertionException<object, Type>(a, typeof(T), $"Type {a.Name} is {typeof(T).Name}");
+            }
+            return true;
+        }
+
+        public static bool IsNotType<T>(Type a)
+        {
+            if (typeof(T).IsAssignableFrom(a))
+            {
+                throw new BinaryAssertionException<object, Type>(a, typeof(T), $"Type {a.Name} is not {typeof(T).Name}");
+            }
+            return true;
+        }
+
+        public static T? IsTypeOrNull<T>(object? a)
+            where T : class?
+        {
+            if (a is T b)
             {
                 return b;
             }
@@ -185,15 +207,15 @@ namespace Polymorphism4Unity
             {
                 return null;
             }
-            throw new BinaryAssertionException<TA, Type>(a, typeof(TB), $"a is {typeof(TB).Name}");
+            throw new BinaryAssertionException<object, Type>(a, typeof(T), $"a is {typeof(T).Name} or null");
         }
 
-        public static TA IsNotType<TA, TB>(TA a)
-          where TB : TA
+        public static TBase IsNotType<TBase, TNotDerived>(TBase a)
+          where TNotDerived : TBase
         {
-            if (a is TB)
+            if (a is TNotDerived)
             {
-                throw new BinaryAssertionException<TA, Type>(a, typeof(TB), $"a is not {typeof(TB).Name}");
+                throw new BinaryAssertionException<TBase, Type>(a, typeof(TNotDerived), $"a is not {typeof(TNotDerived).Name}");
             }
             return a;
         }

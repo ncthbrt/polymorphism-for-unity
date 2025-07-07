@@ -1,11 +1,12 @@
 #nullable enable
 using UnityEngine;
 using UnityEditor;
+using System;
 
 namespace Polymorphism4Unity.Editor
 {
-    [CustomPropertyDrawer(typeof(PolymorphicAttribute))]
-    public class PolymorphicPropertyDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(PolymorphicDictionary<,>))]
+    public class PolymorphicDictionaryPropertyDrawer : PropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
@@ -14,7 +15,7 @@ namespace Polymorphism4Unity.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            base.OnGUI(position, property, label);
+            throw new NotImplementedException();
         }
     }
 }
