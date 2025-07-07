@@ -9,7 +9,7 @@ namespace Polymorphism4Unity
     {
     }
 
-    [Serializable]
+    [Serializable, PolymorphicList]
     public abstract class PolymorphicList<T> : IPolymorphicList<T>
     {
         [SerializeReference]

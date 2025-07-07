@@ -19,7 +19,7 @@ namespace Polymorphism4Unity
         bool Remove<TSubkind>() where TSubkind : TBaseKind;
     }
 
-    [Serializable]
+    [Serializable, KindSet]
     public abstract class KindSet<TBaseKind> : ISerializationCallbackReceiver, IEnumerable<TBaseKind>, ICollection<TBaseKind>, IKindSet<TBaseKind>
     {
         [SerializeReference]
