@@ -1,5 +1,5 @@
 {
-    "name": "Polymorphism4Unity.Abstractions",
+    "name": "Polymorphism4Unity",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -9,5 +9,6 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": false
+    "noEngineReferences": false,
+    "rootNamespace": "Polymorphism4Unity"
 }

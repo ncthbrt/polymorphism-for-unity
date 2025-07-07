@@ -11,11 +11,6 @@ namespace Polymorphism4Unity.Editor
           private readonly Func<TArg, TResult> factory;
           private readonly Func<TArg, object> keySelector;
 
-          private static TArg Unit(TArg arg)
-          {
-               return arg;
-          }
-
           public Cache(Func<TArg, TResult> factory) : this(factory, static arg => arg!)
           {
 

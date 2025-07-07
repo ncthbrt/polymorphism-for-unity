@@ -1,10 +1,10 @@
 using System;
 using UnityEngine;
 
-namespace Polymorphism4Unity.Abstractions
+namespace Polymorphism4Unity
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field)]
-    public class PolymorphicTypeAttribute : PropertyAttribute
+    public class PolymorphicAttribute : PropertyAttribute
     {
     }
 }

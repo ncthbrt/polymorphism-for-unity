@@ -2,7 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using static Polymorphism4Unity.Editor.Asserts;
+using static Polymorphism4Unity.Asserts;
 
 namespace Polymorphism4Unity.Editor
 {

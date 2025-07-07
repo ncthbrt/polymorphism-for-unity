@@ -1,7 +1,7 @@
 #nullable enable
 using System;
 
-namespace Polymorphism4Unity.Editor
+namespace Polymorphism4Unity
 {
     public static class Asserts
     {
@@ -76,54 +76,102 @@ namespace Polymorphism4Unity.Editor
             return a;
         }
 
-        public static void IsNull<T>(T? a)
+        public static T? IsNull<T>(T? a)
         {
             if (a is not null)
             {
                 throw new UnaryAssertionException<T>(a, $"{nameof(a)} is null");
             }
+            return default;
         }
 
-        public static void IsEqual<T>(T a, T b)
+        public static T IsEqual<T>(T a, T b)
         {
             if (!Equals(a, b))
             {
                 throw new UniformBinaryAssertionException<T>(a, b, $"Equals({nameof(a)}, {nameof(b)})");
             }
+
+            return a;
         }
 
-        public static void IsNotEqual<T>(T a, T b)
+        public static T IsGreater<T>(T a, T b)
+            where T : notnull, IComparable<T>
+        {
+            if (a.CompareTo(b) > 0)
+            {
+                throw new UniformBinaryAssertionException<T>(a, b, $"{nameof(a)} > {nameof(b)})");
+            }
+            return a;
+        }
+
+        public static T IsLess<T>(T a, T b)
+            where T : notnull, IComparable<T>
+        {
+            if (a.CompareTo(b) < 0)
+            {
+                throw new UniformBinaryAssertionException<T>(a, b, $"{nameof(a)} < {nameof(b)})");
+            }
+            return a;
+        }
+
+        public static T IsGreaterOrEqual<T>(T a, T b)
+            where T : notnull, IComparable<T>
+        {
+            if (a.CompareTo(b) >= 0)
+            {
+                throw new UniformBinaryAssertionException<T>(a, b, $"{nameof(a)} >= {nameof(b)})");
+            }
+
+            return a;
+        }
+
+        public static T IsLessOrEqual<T>(T a, T b)
+            where T : notnull, IComparable<T>
+        {
+            if (a.CompareTo(b) <= 0)
+            {
+                throw new UniformBinaryAssertionException<T>(a, b, $"{nameof(a)} <= {nameof(b)})");
+            }
+
+            return a;
+        }
+
+        public static T IsNotEqual<T>(T a, T b)
         {
             if (Equals(a, b))
             {
                 throw new UniformBinaryAssertionException<T>(a, b, $"!Equals({nameof(a)}, {nameof(b)})");
             }
+            return a;
         }
 
-        public static void IsTrue(bool a)
+        public static bool IsTrue(bool a)
         {
             if (!a)
             {
                 throw new AssertionException($"{nameof(a)} is true");
             }
+            return true;
         }
 
-        public static void IsFalse(bool a)
+        public static bool IsFalse(bool a)
         {
             if (a)
             {
                 throw new AssertionException($"{nameof(a)} is true");
             }
+            return false;
         }
 
         public static TB IsType<TA, TB>(TA a)
             where TB : TA
         {
-            if (a is TB b)
+            if (a is not TB b)
             {
-                return b;
+                throw new BinaryAssertionException<TA, Type>(a, typeof(TB), $"a is {typeof(TB).Name}");
             }
-            throw new BinaryAssertionException<TA, Type>(a, typeof(TB), $"a is {typeof(TB).Name}");
+            return b;
         }
 
         public static TB? IsTypeOrNull<TA, TB>(TA? a)
@@ -140,13 +188,14 @@ namespace Polymorphism4Unity.Editor
             throw new BinaryAssertionException<TA, Type>(a, typeof(TB), $"a is {typeof(TB).Name}");
         }
 
-        public static void IsNotType<TA, TB>(TA a)
+        public static TA IsNotType<TA, TB>(TA a)
           where TB : TA
         {
             if (a is TB)
             {
                 throw new BinaryAssertionException<TA, Type>(a, typeof(TB), $"a is not {typeof(TB).Name}");
             }
+            return a;
         }
     }
 }

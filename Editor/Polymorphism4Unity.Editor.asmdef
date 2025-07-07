@@ -1,12 +1,12 @@
 {
     "name": "Polymorphism4Unity.Editor",
     "references": [
-        "Polymorphism4Unity.Abstractions"
+        "Polymorphism4Unity"
     ],
     "includePlatforms": [
         "Editor"
     ],
-    "rootNamespace": "Polymorphism4Unity",
+    "rootNamespace": "Polymorphism4Unity.Editor",
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
