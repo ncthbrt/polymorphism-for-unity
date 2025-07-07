@@ -10,28 +10,28 @@ namespace Polymorphism4Unity.Editor.Containers
 {
     public interface IStackCommand
     {
-        string StackName { get; }
+        string StackId { get; }
     }
 
     public abstract class StackCommand<T> : CommandEventBase<T>, IStackCommand
         where T : StackCommand<T>, new()
     {
-        public abstract string StackName { get; }
+        public abstract string StackId { get; }
     }
 
     public abstract class PopCommand<T> : StackCommand<T>
         where T : PopCommand<T>, new()
     {
         private static readonly string cmdName = typeof(T).Name;
-        private string stackName = string.Empty;
-        public override string StackName =>
-            Asserts.IsNotNullOrEmpty(stackName);
+        private string stackId = string.Empty;
+        public override string StackId =>
+            Asserts.IsNotNullOrEmpty(stackId);
 
         public static new T GetPooled(string stackId)
         {
             T command = GetPooled();
             command.commandName = cmdName;
-            command.stackName = Asserts.IsNotNullOrEmpty(stackId);
+            command.stackId = Asserts.IsNotNullOrEmpty(stackId);
             return command;
         }
     }
@@ -52,10 +52,10 @@ namespace Polymorphism4Unity.Editor.Containers
         where T : FrameCommand<T>, new()
     {
         private static readonly string cmdName = typeof(T).Name;
-        private string? stackName = null;
+        private string? stackId = null;
         private string? frameName = null;
-        public override string StackName =>
-            Asserts.IsNotNullOrEmpty(stackName);
+        public override string StackId =>
+            Asserts.IsNotNullOrEmpty(stackId);
         private VisualElement? frame = null;
         public VisualElement Frame =>
             Asserts.IsNotNull(frame);
@@ -67,7 +67,7 @@ namespace Polymorphism4Unity.Editor.Containers
         {
             T command = GetPooled();
             command.commandName = cmdName;
-            command.stackName = Asserts.IsNotNullOrEmpty(stackId);
+            command.stackId = Asserts.IsNotNullOrEmpty(stackId);
             command.frame = Asserts.IsNotNull(frame);
             command.frameName = Asserts.IsNotNullOrEmpty(frameName);
             return command;
@@ -232,6 +232,9 @@ namespace Polymorphism4Unity.Editor.Containers
         private readonly Stack<HorizontalStackFrameGroup> stack = new();
         public override VisualElement contentContainer => stack.TryPeek(out HorizontalStackFrameGroup result) ? result : this;
 
+        [UxmlAttribute]
+        public string StackId { get; set; }
+
         public HorizontalStackContainer()
         {
             StyleSheet styleSheet = Asserts.IsNotNull(AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.ncthbrt.polymorphism-for-unity/Editor/Containers/Stacks/StackStyles.uss"));
@@ -258,18 +261,14 @@ namespace Polymorphism4Unity.Editor.Containers
         {
             RegisterCallbackOnce<GeometryChangedEvent>(evt =>
             {
-                RegisterCallback<PushFrameCommand>(cmd =>
+                RegisterCallback<IStackCommand>(cmd =>
                 {
-
-                });
-
-                RegisterCallback<PushFrameCommand>(cmd =>
-                {
-
+                    if (cmd.StackId != StackId)
+                    {
+                        return;
+                    }                
                 });
             });
         }
-
-
     }
 }
