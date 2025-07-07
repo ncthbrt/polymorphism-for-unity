@@ -182,7 +182,16 @@ namespace Polymorphism4Unity
         {
             if (!typeof(T).IsAssignableFrom(a))
             {
-                throw new BinaryAssertionException<object, Type>(a, typeof(T), $"Type {a.Name} is {typeof(T).Name}");
+                throw new BinaryAssertionException<Type, Type>(a, typeof(T), $"{a.Name} is {typeof(T).Name}");
+            }
+            return true;
+        }
+
+        public static bool IsType(Type a, Type b)
+        {
+            if (!b.IsAssignableFrom(a))
+            {
+                throw new BinaryAssertionException<Type, Type>(a, b, $"{a.Name} is {b.Name}");
             }
             return true;
         }
@@ -191,7 +200,16 @@ namespace Polymorphism4Unity
         {
             if (typeof(T).IsAssignableFrom(a))
             {
-                throw new BinaryAssertionException<object, Type>(a, typeof(T), $"Type {a.Name} is not {typeof(T).Name}");
+                throw new BinaryAssertionException<Type, Type>(a, typeof(T), $"{a.Name} is not {typeof(T).Name}");
+            }
+            return true;
+        }
+
+        public static bool IsNotType(Type a, Type b)
+        {
+            if (b.IsAssignableFrom(a))
+            {
+                throw new BinaryAssertionException<Type, Type>(a, b, $"{a.Name} is not {b.Name}");
             }
             return true;
         }

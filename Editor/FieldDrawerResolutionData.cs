@@ -54,6 +54,48 @@ namespace Polymorphism4Unity.Editor
                 return interfaces;
             }
         );
+        private static readonly Cache<Type, IReadOnlyList<PropertyDrawerData>> propertyDrawers = new(ResolvePropertyDrawerData);
+
+        private static IReadOnlyList<PropertyDrawerData> ResolvePropertyDrawerData(Type subtype)
+        {
+            List<PropertyDrawerData> result = new();
+            void TryAdd(Type t)
+            {
+                if (PropertyDrawerData.Data.TryGetValue(t, out PropertyDrawerData? propertyDrawerData))
+                {
+                    result.Add(propertyDrawerData);
+                }
+            }
+            TryAdd(subtype);
+            if (subtype.IsGenericType)
+            {
+                Type currentGenericType = subtype.GetGenericTypeDefinition();
+                TryAdd(currentGenericType);
+            }
+            IReadOnlyList<Type> subInterfaces = interfaces[subtype];
+            foreach (Type sub in subInterfaces)
+            {
+                TryAdd(sub);
+                if (sub.IsGenericType)
+                {
+                    Type currentGenericInterface = sub.GetGenericTypeDefinition();
+                    TryAdd(currentGenericInterface);
+                }
+            }
+            if (subtype.BaseType is not null)
+            {
+                IReadOnlyList<PropertyDrawerData> dataItems = propertyDrawers[subtype.BaseType];
+                foreach (PropertyDrawerData data in dataItems)
+                {
+                    if (data.UseForChildren)
+                    {
+                        result.Add(data);
+                    }
+                }
+            }
+            return result;
+        }
+
         public string PropertyPath { get; }
         public Type Type { get; }
         public Lazy<IReadOnlyList<Type>> AllSubtypes { get; }
@@ -93,7 +135,14 @@ namespace Polymorphism4Unity.Editor
                 return drawerData;
             }
             PropertyAttributes = propertyAttributes.Select(MaybeGetAttributePropertyDrawerData).WhereNotNull().ToList();
-            PropertyDrawers = new Cache<Type, IReadOnlyList<PropertyDrawerData>>(ResolvePropertyDrawerData);
+            PropertyDrawers = new Cache<Type, IReadOnlyList<PropertyDrawerData>>((subtype) =>
+            {
+                if (subtype.IsNot(Type))
+                {
+                    throw new ArgumentException($"Expected {subtype.Name} to be the same as or derived from {Type.Name}");
+                }
+                return propertyDrawers[subtype];
+            });
         }
 
         public static FieldDrawerResolutionData CreateForField(SerializedProperty property, FieldInfo fieldInfo) =>
@@ -116,38 +165,5 @@ namespace Polymorphism4Unity.Editor
 
         public override int GetHashCode() =>
             HashCode.Combine(PropertyPath, Type, IsRootField);
-
-        private IReadOnlyList<PropertyDrawerData> ResolvePropertyDrawerData(Type subtype)
-        {
-            List<PropertyDrawerData> result = new();
-            void TryAdd(Type t)
-            {
-                if (PropertyDrawerData.Data.TryGetValue(t, out PropertyDrawerData? propertyDrawerData))
-                {
-                    result.Add(propertyDrawerData);
-                }
-            }
-            TryAdd(subtype);
-            if (subtype.IsGenericType)
-            {
-                Type currentGenericType = subtype.GetGenericTypeDefinition();
-                TryAdd(currentGenericType);
-            }
-            IReadOnlyList<Type> subInterfaces = interfaces[subtype];
-            foreach (Type sub in subInterfaces)
-            {
-                TryAdd(sub);
-                if (sub.IsGenericType)
-                {
-                    Type currentGenericInterface = sub.GetGenericTypeDefinition();
-                    TryAdd(currentGenericInterface);
-                }
-            }
-            if (subtype.BaseType is not null)
-            {
-                result.AddRange(PropertyDrawers[subtype.BaseType]);
-            }
-            return result;
-        }
     }
 }
