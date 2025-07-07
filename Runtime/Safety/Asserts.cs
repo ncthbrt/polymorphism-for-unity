@@ -24,6 +24,20 @@ namespace Polymorphism4Unity.Safety
             return a;
         }
 
+        public static string IsNotNullOrEmpty(string? a)
+        {
+            return IsNotEqual(IsNotNull(a), string.Empty);
+        }
+
+        public static string? IsNullOrEmpty(string? a)
+        {
+            if (a is null)
+            {
+                return null;
+            }
+            return IsEqual(a, string.Empty);
+        }
+
         public static T? IsNull<T>(T? a)
         {
             if (a is not null)

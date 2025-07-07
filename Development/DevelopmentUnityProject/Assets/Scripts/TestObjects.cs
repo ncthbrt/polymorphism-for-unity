@@ -25,4 +25,12 @@ namespace Polymorphism4Unity.DevelopmentEnvironment
         [SerializeReference]
         private TestObject value3 = new TestObjectA();
     }
+
+    [Serializable, UsedImplicitly]
+    public class TestObjectC<T> : TestObject
+        where T : new()
+    {
+        [SerializeReference]
+        private T value4 = new T();
+    }
 }

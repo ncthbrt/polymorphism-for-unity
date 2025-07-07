@@ -7,6 +7,6 @@ namespace Polymorphism4Unity.DevelopmentEnvironment
     public class TestBehaviour : MonoBehaviour
     {
         [SerializeReference, Polymorphic]
-        private TestObject? testObject = new TestObjectB();
+        private TestObject? testObject = new TestObjectC<TestObjectA>();
     }
 }

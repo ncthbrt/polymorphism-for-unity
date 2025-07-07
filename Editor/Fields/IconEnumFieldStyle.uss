@@ -2,11 +2,13 @@
     justify-content: space-between;
 }
 
-.poly_icon__enum_field > .unity-enum-field__input > #Icon {
+.poly_icon__enum_field > .unity-enum-field__input > .unity-enum-field__text {
     width: 20px;
     height: 20px;
     align-self: center;
     flex-grow: 0;
+    background-image: resource('Icons/d_UnityEditor.SceneHierarchyWindow@2x.png');
+    font-size: 0;    
 }
 
 .poly_icon__enum_field > .unity-enum-field__input {

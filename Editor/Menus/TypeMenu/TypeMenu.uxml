@@ -1,0 +1,22 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <engine:Template name="TypeMenuListTreeRoot" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenu/TypeMenuListTreeRoot.uxml?fileID=9197481963319205126&amp;guid=239874585f38a4ea7b71bfb775b62387&amp;type=3#TypeMenuListTreeRoot" />
+    <engine:Template name="TypeMenuListTreeChild" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenu/TypeMenuListTreeChild.uxml?fileID=9197481963319205126&amp;guid=ec532130c85cc422c908ca301175e378&amp;type=3#TypeMenuListTreeChild" />
+    <engine:Template name="TypeMenuListTreeGeneric" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenu/TypeMenuListTreeGeneric.uxml?fileID=9197481963319205126&amp;guid=7b67b82c0bccb46a8a2b02df6d3b9b87&amp;type=3#TypeMenuListTreeGeneric" />
+    <engine:Template name="TypeMenuSearchResults" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenu/TypeMenuSearchResults.uxml?fileID=9197481963319205126&amp;guid=78cb042177e93429e924de36f99327eb&amp;type=3#TypeMenuSearchResults" />
+    <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenu/TypeMenuStyle.uss?fileID=7433441132597879392&amp;guid=51b5882f8b22a422295d3f2bb2afa037&amp;type=3#TypeMenuStyle" />
+    <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Fields/IconEnumFieldStyle.uss?fileID=7433441132597879392&amp;guid=d41ec1bbabf074c758ee853d46e33301&amp;type=3#IconEnumFieldStyle" />
+    <engine:VisualElement name="RootContainer" class="poly_typemenu__root">
+        <editor:Toolbar name="SearchToolbar" class="poly_typemenu__searchtoolbar unity-toolbar">
+            <engine:EnumField value="Center" type="Polymorphism4Unity.Attributes.TypeMenuDisplayMode, Polymorphism4Unity.Editor" name="DisplayMode" class="poly_icon__enum_field" />
+            <editor:ToolbarSearchField name="SearchField" style="flex-grow: 1;" />
+        </editor:Toolbar>
+        <engine:VisualElement name="ClippingFrame" usage-hints="None" class="poly_typemenu__clippingframe">
+            <engine:VisualElement name="ContentMover" usage-hints="DynamicTransform" class="poly_typemenu__contentmover" style="translate: 0 0;">
+                <engine:Instance template="TypeMenuListTreeRoot" name="Root" picking-mode="Ignore" focusable="true" class="poly_typemenu__menulist-template" />
+                <engine:Instance template="TypeMenuListTreeChild" name="Child" focusable="true" class="poly_typemenu__menulist-template" />
+                <engine:Instance template="TypeMenuListTreeGeneric" name="Generic" focusable="true" class="poly_typemenu__menulist-template" />
+                <engine:Instance template="TypeMenuSearchResults" name="SearchResults" focusable="true" class="poly_typemenu__menulist-template" />
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

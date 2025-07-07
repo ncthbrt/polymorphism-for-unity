@@ -317,8 +317,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2034209344}
-  - component: {fileID: 2034209343}
-  - component: {fileID: 2034209342}
+  - component: {fileID: 2034209345}
   m_Layer: 0
   m_Name: TestGameObject
   m_TagString: Untagged
@@ -326,56 +325,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2034209342
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2034209341}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8dddc7d8240a9419d899f189e898cadd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  testObject:
-    rid: 7156624470139732153
-  references:
-    version: 2
-    RefIds:
-    - rid: 7156624470139732153
-      type: {class: TestObjectB, ns: Polymorphism4Unity.DevelopmentEnvironment, asm: Assembly-CSharp}
-      data:
-        value1: 1
-        value3:
-          rid: 7156624470139732154
-    - rid: 7156624470139732154
-      type: {class: TestObjectA, ns: Polymorphism4Unity.DevelopmentEnvironment, asm: Assembly-CSharp}
-      data:
-        value1: 7
-        value2: Ionide
---- !u!114 &2034209343
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2034209341}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8dddc7d8240a9419d899f189e898cadd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  testObject:
-    rid: 7156624470139732152
-  references:
-    version: 2
-    RefIds:
-    - rid: 7156624470139732152
-      type: {class: TestObjectA, ns: Polymorphism4Unity.DevelopmentEnvironment, asm: Assembly-CSharp}
-      data:
-        value1: 0
-        value2: Beryllium
 --- !u!4 &2034209344
 Transform:
   m_ObjectHideFlags: 0
@@ -391,6 +340,35 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2034209345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2034209341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8dddc7d8240a9419d899f189e898cadd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  testObject:
+    rid: 7156624553425764659
+  references:
+    version: 2
+    RefIds:
+    - rid: 7156624553425764659
+      type: {class: 'TestObjectC`1[[Polymorphism4Unity.DevelopmentEnvironment.TestObjectA, Assembly-CSharp]]',
+        ns: Polymorphism4Unity.DevelopmentEnvironment, asm: Assembly-CSharp}
+      data:
+        value1: 0
+        value4:
+          rid: 7156624553425764660
+    - rid: 7156624553425764660
+      type: {class: TestObjectA, ns: Polymorphism4Unity.DevelopmentEnvironment, asm: Assembly-CSharp}
+      data:
+        value1: 0
+        value2: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

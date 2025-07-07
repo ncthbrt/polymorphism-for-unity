@@ -12,11 +12,6 @@ using PopupWindow = UnityEditor.PopupWindow;
 
 namespace Polymorphism4Unity.Editor
 {
-    [UxmlElement, UsedImplicitly]
-    public partial class TypeMenuContentMover : VisualElement
-    {
-
-    }
 
     public class TypeMenu : PopupWindowContent
     {

@@ -1,0 +1,8 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenu/TypeMenuStyle.uss?fileID=7433441132597879392&amp;guid=51b5882f8b22a422295d3f2bb2afa037&amp;type=3#TypeMenuStyle" />
+    <editor:Toolbar name="Toolbar" focusable="true" class="poly_typemenu__menulist-categoryheader poly_typemenu__menulist-header-toolbar">
+        <editor:ToolbarButton name="CategoryButton" text="Type or Category Name" emoji-fallback-support="false" enable-rich-text="true" selectable="false" double-click-selects-word="false" triple-click-selects-line="false" class="poly_typemenu__menulist-header-button">
+            <engine:VisualElement name="BackIcon" picking-mode="Ignore" class="poly_typemenu__menulist-header-backicon" />
+        </editor:ToolbarButton>
+    </editor:Toolbar>
+</engine:UXML>
