@@ -2,7 +2,7 @@
   "name": "com.ncthbrt.polymorphism-for-unity",
   "displayName": "Polymorphism for Unity",
   "version": "0.0.0",
-  "unity": "2021.3",
+  "unity": "2019.3",
   "description": "Low ceremony package for working with polymorphic types in the Unity Editor",
   "keywords": [
     "unity",
