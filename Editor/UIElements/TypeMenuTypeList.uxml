@@ -1,0 +1,4 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/UIElements/TypeMenuStyle.uss?fileID=7433441132597879392&amp;guid=51b5882f8b22a422295d3f2bb2afa037&amp;type=3#TypeMenuStyle" />
+    <engine:ListView name="TypeList" class="poly_typemenu__menulist-list" />
+</engine:UXML>

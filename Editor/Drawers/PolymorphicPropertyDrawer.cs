@@ -2,20 +2,22 @@
 using UnityEngine;
 using UnityEditor;
 using Polymorphism4Unity.Attributes;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 
 namespace Polymorphism4Unity.Editor.Drawers
 {
     [CustomPropertyDrawer(typeof(PolymorphicAttribute))]
     public class PolymorphicPropertyDrawer : PropertyDrawer
     {
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            return base.GetPropertyHeight(property, label);
-        }
-
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            base.OnGUI(position, property, label);
+            Debug.Log("Creating");
+            PropertyField propertyField = new(property);
+            IResolvedStyle resolvedStyle = propertyField.resolvedStyle;
+            float minHeight = Mathf.Max(resolvedStyle.height, resolvedStyle.minHeight.value);
+            Debug.Log(minHeight);
+            return propertyField;
         }
     }
 }

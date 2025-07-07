@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <Target Name="CleanDlls" BeforeTargets="Restore">
+        <ItemGroup>
+            <NugetFiles Include="$(RestorePackagesPath)**\*" />
+        </ItemGroup>
+        <Delete Files="@(NugetFiles)" />
+    </Target>
+    <Target Name="CopyDlls" AfterTargets="Restore">
+        <ItemGroup>
+            <NugetDlls Include="$(RestorePackagesPath)\*\*\lib\netstandard2.1\*.dll" />
+        </ItemGroup>
+        <Copy SourceFiles="@(NugetDlls)"
+            SkipUnchangedFiles="true"
+            DestinationFolder="$(UnityPluginOutputPath)" />
+    </Target>
+    <Target Name="GenerateMetaFiles" Inputs="@(PackageReference)"
+        Outputs="$(UnityPluginOutputPath)%(Identity.Include).dll.meta"
+        AfterTargets="CopyDlls">
+        <ItemGroup>
+            <DllMetaFileLine Include="fileFormatVersion: 2" />
+            <DllMetaFileLine Include="guid: %(PackageReference.UnityGuid)" />
+        </ItemGroup>
+        <WriteLinesToFile
+            File="$(UnityPluginOutputPath)%(PackageReference.Identity).dll.meta"
+            Overwrite="true"
+            WriteOnlyWhenDifferent="true"
+            Lines="@(DllMetaFileLine)" />
+    </Target>
+</Project>

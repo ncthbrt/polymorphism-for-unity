@@ -1,0 +1,12 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <engine:Template name="TypeMenuTypeList" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/UIElements/TypeMenuTypeList.uxml?fileID=9197481963319205126&amp;guid=da953ecdccc1048e9878ac35a796aecf&amp;type=3#TypeMenuTypeList" />
+    <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/UIElements/TypeMenuStyle.uss?fileID=7433441132597879392&amp;guid=51b5882f8b22a422295d3f2bb2afa037&amp;type=3#TypeMenuStyle" />
+    <engine:VisualElement name="Container" class="poly_typemenu__menulist-container">
+        <editor:Toolbar name="Toolbar" class="poly_typemenu__menulist-categoryheader poly_typemenu__menulist-header-toolbar">
+            <editor:ToolbarButton text="Category Name" emoji-fallback-support="false" enable-rich-text="true" selectable="false" double-click-selects-word="false" triple-click-selects-line="false" name="CategoryButton" class="poly_typemenu__menulist-header-button">
+                <engine:VisualElement name="BackIcon" picking-mode="Ignore" class="poly_typemenu__menulist-header-backicon" />
+            </editor:ToolbarButton>
+        </editor:Toolbar>
+        <engine:Instance name="List" template="TypeMenuTypeList" class="poly_typemenu__menulist-list-template" />
+    </engine:VisualElement>
+</engine:UXML>

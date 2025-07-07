@@ -1,11 +1,27 @@
 #nullable enable
 using System;
+using System.Linq;
 using System.Reflection;
+using Polymorphism4Unity.Editor.Collections;
+using Polymorphism4Unity.Enums;
+using UnityEditor;
+
 
 namespace Polymorphism4Unity.Editor.Utils
 {
     internal static class TypeUtils
     {
+        private static Func<Type, bool> Matches(TypesFilter filter) =>
+             t => TypesFilterExtensions.Matches(filter, t);
+
+        private static readonly Cache<(Type type, TypesFilter filter), Type[]> subtypes = new(
+            (args) => TypeCache.GetTypesDerivedFrom(args.type).Where(Matches(args.filter)).ToArray()
+        );
+
+        public static Type[] GetSubtypes(Type type, TypesFilter filter = TypesFilter.Concretes) =>
+            subtypes[(type, filter)];
+
+
         /// <summary>
         /// Evalauates whether <paramref name="t"/> is a type that can be constructed.
         /// </summary>

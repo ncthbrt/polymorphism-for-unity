@@ -10,6 +10,7 @@ using Polymorphism4Unity.Editor.Collections;
 using Polymorphism4Unity.Editor.Utils;
 using T = Polymorphism4Unity.Editor.Utils.TypeUtils;
 using static Polymorphism4Unity.Editor.Utils.FuncUtils;
+using Polymorphism4Unity.Editor.Drawers;
 
 namespace Polymorphism4Unity.Editor.DrawerResolution
 {
@@ -95,6 +96,10 @@ namespace Polymorphism4Unity.Editor.DrawerResolution
                         result.Add(data);
                     }
                 }
+            }
+            else
+            {
+                result.Add(new PropertyDrawerData(typeof(object), typeof(DefaultPropertyDrawer), true));
             }
             return result;
         }

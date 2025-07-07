@@ -1,0 +1,28 @@
+<Project DefaultTargets="Restore">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RootNamespace>Polymorphism4Unity.Editor</RootNamespace>
+    <UnityPluginOutputPath>$(ProjectDir)Editor\Plugins\</UnityPluginOutputPath>
+    <SkipCopyBuildProduct>true</SkipCopyBuildProduct>
+  </PropertyGroup>
+  <Import Project="NugetUnityPlugins_Presets.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="NugetUnityPlugins_Tasks.targets" />
+  <ItemGroup>
+    <PackageReference Include="FuzzySharp" Version="2.0.2"
+      UnityGuid="64b010eced4ce40f2a588ce02030c284" />
+  </ItemGroup>
+
+
+  <!-- This project only exists to copy dependencies to the plugins dir -->
+  <ItemGroup>
+    <Compile Remove="**/*.cs" />
+  </ItemGroup>
+
+  <!-- We don't want to build. Only restore packages. Add an empty build target to override the
+  default one -->
+  <Target Name="Build"
+    DependsOnTargets="Restore"
+  />
+</Project>

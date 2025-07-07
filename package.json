@@ -22,7 +22,5 @@
   },
   "license": "MIT",
   "author": "Natalie Cuthbert <natalie@cuthbert.co.za>",
-  "scripts": {
-    "test": "exit 0"
-  }
+  "scripts": {}
 }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <PropertyGroup>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <RestorePackagesPath>.\Temp\$(RootNamespace)\Plugins\</RestorePackagesPath>
+        <OutDir>.\Temp\$(RootNamespace)\bin\</OutDir>
+        <BaseIntermediateOutputPath>.\Temp\$(RootNamespace)\obj\</BaseIntermediateOutputPath>
+        <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+        <RestoreNoCache>true</RestoreNoCache>
+    </PropertyGroup>
+</Project>

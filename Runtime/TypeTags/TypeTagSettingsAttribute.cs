@@ -1,12 +1,12 @@
 #nullable enable
 using System;
+using Polymorphism4Unity.Enums;
 
 namespace Polymorphism4Unity.TypeTags
 {
     [AttributeUsage(AttributeTargets.Field)]
     public class TypeTagSettingsAttribute : Attribute
     {
-        public TypeTagFilter Filter { get; } = TypeTagFilter.ShowOnlyConcreteTypes;
-        public GenericBehaviour GenericBehaviour { get; } = GenericBehaviour.GenericOrConstructed;
+        public TypesFilter Filter { get; } = TypesFilter.ConcretesAndNulls;
     }
 }

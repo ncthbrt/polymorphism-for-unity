@@ -11,7 +11,7 @@
 /[Ll]ogs/
 /[Mm]emoryCaptures/
 /[Uu]serSettings/
-
+/UIElementsSchema/
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
 

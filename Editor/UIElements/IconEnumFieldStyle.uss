@@ -1,0 +1,16 @@
+.poly_icon__enum_field > .unity-enum-field__input {
+    justify-content: space-between;
+}
+
+.poly_icon__enum_field > .unity-enum-field__input > #Icon {
+    width: 20px;
+    height: 20px;
+    align-self: center;
+    flex-grow: 0;
+}
+
+.poly_icon__enum_field > .unity-enum-field__input {
+    align-items: center;
+    padding: 1px;
+}
+

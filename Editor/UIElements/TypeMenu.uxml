@@ -1,0 +1,15 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/UIElements/TypeMenuStyle.uss?fileID=7433441132597879392&amp;guid=51b5882f8b22a422295d3f2bb2afa037&amp;type=3#TypeMenuStyle" />
+    <engine:Template name="TypeMenuSearchToolbar" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/UIElements/TypeMenuSearchToolbar.uxml?fileID=9197481963319205126&amp;guid=c6ed87874e8414e2b985d5388718619d&amp;type=3#TypeMenuSearchToolbar" />
+    <engine:Template name="TypeMenuListTreeRoot" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/UIElements/TypeMenuListTreeRoot.uxml?fileID=9197481963319205126&amp;guid=239874585f38a4ea7b71bfb775b62387&amp;type=3#TypeMenuListTreeRoot" />
+    <engine:Template name="TypeMenuListTreeChild" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/UIElements/TypeMenuListTreeChild.uxml?fileID=9197481963319205126&amp;guid=ec532130c85cc422c908ca301175e378&amp;type=3#TypeMenuListTreeChild" />
+    <engine:VisualElement name="RootContainer" class="poly_typemenu__root">
+        <engine:Instance template="TypeMenuSearchToolbar" name="SearchToolbar" />
+        <engine:VisualElement name="ClippingFrame" usage-hints="None" class="poly_typemenu__clippingframe">
+            <engine:VisualElement name="ContentMover" usage-hints="DynamicTransform" class="poly_typemenu__contentmover" style="translate: -100% 0;">
+                <engine:Instance template="TypeMenuListTreeRoot" name="Root" class="poly_typemenu__menulist-template" />
+                <engine:Instance template="TypeMenuListTreeChild" name="Child" class="poly_typemenu__menulist-template" />
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>
