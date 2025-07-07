@@ -8,7 +8,7 @@
     </Target>
     <Target Name="CopyDlls" AfterTargets="Restore">
         <ItemGroup>
-            <NugetDlls Include="$(RestorePackagesPath)\*\*\lib\netstandard2.1\*.dll" />
+            <NugetDlls Include="$(RestorePackagesPath)\*\*\lib\$(TargetFramework)\*.dll" />
         </ItemGroup>
         <Copy SourceFiles="@(NugetDlls)"
             SkipUnchangedFiles="true"
@@ -17,9 +17,14 @@
     <Target Name="GenerateMetaFiles" Inputs="@(PackageReference)"
         Outputs="$(UnityPluginOutputPath)%(Identity.Include).dll.meta"
         AfterTargets="CopyDlls">
+        <PropertyGroup>
+            <DllMetaTemplate>
+fileFormatVersion: 2
+guid: %(PackageReference.UnityGuid)            
+            </DllMetaTemplate>
+        </PropertyGroup>
         <ItemGroup>
-            <DllMetaFileLine Include="fileFormatVersion: 2" />
-            <DllMetaFileLine Include="guid: %(PackageReference.UnityGuid)" />
+            <DllMetaFileLine Include="$(DllMetaTemplate.Split(`%0a`))" />
         </ItemGroup>
         <WriteLinesToFile
             File="$(UnityPluginOutputPath)%(PackageReference.Identity).dll.meta"
