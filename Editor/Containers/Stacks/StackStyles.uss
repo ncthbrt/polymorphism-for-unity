@@ -18,6 +18,9 @@
     width: 100%;
     height: 100%;
     overflow: visible;
+}
+
+.poly_horizontalstack__contentmover .animating {
     transition-property: translate;
     transition-duration: 0.3s;
     transition-timing-function: ease-in-out-sine;

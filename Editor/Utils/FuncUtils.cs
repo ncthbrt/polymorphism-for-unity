@@ -1,6 +1,8 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.UIElements;
 namespace Polymorphism4Unity.Editor.Utils
 {
     internal static class FuncUtils
@@ -105,6 +107,32 @@ namespace Polymorphism4Unity.Editor.Utils
         public static Comparison<TIn> ToComparison<TIn, TCompare>(Func<TIn, TCompare> selector1, Func<TIn, TCompare> selector2)
                     where TCompare : IComparable<TCompare> =>
                         (input1, input2) => selector1(input1).CompareTo(selector2(input2));
+
+
+        public static Action<T> Iff<T>(Predicate<T> condition, Action<T> then) =>
+            value =>
+            {
+                if (condition(value))
+                {
+                    then(value);
+                }
+            };
+
+        public static EventCallback<TEvent> ToEventCallback<TEvent>(this Action<TEvent> action) =>
+            new EventCallback<TEvent>(action);
+
+        public static Func<T, TResult?> Iff<T, TResult>(Predicate<T> condition, Func<T, TResult> then) =>
+            value =>
+            {
+                if (condition(value))
+                {
+                    return then(value);
+                }
+                return default;
+            };
+
+        public static Func<T, TResult> Tern<T, TResult>(Func<T, bool> condition, Func<T, TResult> a, Func<T, TResult> b) =>
+            value => (condition(value) ? a : b)(value);
 
     }
 }

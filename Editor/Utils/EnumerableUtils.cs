@@ -70,5 +70,22 @@ namespace Polymorphism4Unity.Editor.Utils
             TIn1 value1, TIn2 value2, TIn3 value3, TIn4 value4
         ) => enumerable.Select(x => x(value1, value2, value3, value4));
 
+        public static void ForEach<T>(this IEnumerable<T> values, Action<T> action)
+        {
+            foreach (T value in values)
+            {
+                action(value);
+            }
+        }
+
+        public static void InvokeAll(this IEnumerable<Action> actions)
+        {
+            foreach (Action action in actions)
+            {
+                action();
+            }
+        }
+
+
     }
 }

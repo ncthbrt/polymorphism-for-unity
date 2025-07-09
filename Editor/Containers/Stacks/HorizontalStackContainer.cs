@@ -1,11 +1,14 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine.UIElements;
-
+using static Polymorphism4Unity.Editor.Utils.FuncUtils;
 namespace Polymorphism4Unity.Editor.Containers
 {
     public interface IStackCommand
@@ -36,11 +39,11 @@ namespace Polymorphism4Unity.Editor.Containers
         }
     }
 
-    public abstract class ResultPopCommand<TCommand, TResult> : PopCommand<TCommand>
-        where TCommand : ResultPopCommand<TCommand, TResult>, new()
+    public abstract class ResultPopCommand<TCommand> : PopCommand<TCommand>
+        where TCommand : ResultPopCommand<TCommand>, new()
     {
-        public TResult? MaybeResult { get; private set; }
-        public static TCommand GetPooled(string stackId, TResult? result)
+        public object? MaybeResult { get; private set; }
+        public static TCommand GetPooled(string stackId, object? result)
         {
             TCommand command = GetPooled(stackId);
             command.MaybeResult = result;
@@ -103,17 +106,18 @@ namespace Polymorphism4Unity.Editor.Containers
     {
     }
 
-    public class PopGroupWithResultCommand<TResult> : ResultPopCommand<PopGroupWithResultCommand<TResult>, TResult>
+    public class PopGroupWithResultCommand : ResultPopCommand<PopGroupWithResultCommand>
     {
     }
 
-    public class PopAllWithResultCommand<TResult> : ResultPopCommand<PopGroupWithResultCommand<TResult>, TResult>
+    public class PopAllWithResultCommand : ResultPopCommand<PopAllWithResultCommand>
     {
     }
 
     [UxmlElement("HorizontalStackFrame"), UsedImplicitly]
     public partial class HorizontalStackFrame : VisualElement
     {
+        private const string animatingUssClassName = "animating";
         private readonly VisualElement frame;
         private readonly VisualElement content;
         private readonly VisualElement header;
@@ -150,20 +154,26 @@ namespace Polymorphism4Unity.Editor.Containers
 
         private void Init()
         {
-            RegisterCallbackOnce<GeometryChangedEvent>(evt =>
+            RegisterCallback<AttachToPanelEvent>(evt =>
             {
-                headerButton.RegisterCallback<ClickEvent>(evt =>
-                {
-                    SendEvent(PopFrameCommand.GetPooled());
-                });
+                headerButton.RegisterCallback<ClickEvent>(PopFrame);
             });
+            RegisterCallback<DetachFromPanelEvent>(evt =>
+            {
+                UnregisterCallback<ClickEvent>(PopFrame);
+            });
+        }
+
+        private void PopFrame(ClickEvent evt)
+        {
+            SendEvent(PopFrameCommand.GetPooled());
+            evt.StopPropagation();
         }
     }
 
     [UxmlElement("HorizontalStackFrameGroup")]
     public partial class HorizontalStackFrameGroup : VisualElement
     {
-
         public override VisualElement? contentContainer => TryPeek(out HorizontalStackFrame? frame) ? frame : this;
 
         public HorizontalStackFrameGroup() : this(null)
@@ -222,21 +232,30 @@ namespace Polymorphism4Unity.Editor.Containers
         }
     }
 
-
-
-    [UxmlElement("HorizontalStack"), UsedImplicitly]
-    public partial class HorizontalStackContainer : VisualElement
+    public class HorizontalStackContainer<TValueType> : BindableElement, INotifyValueChanged<TValueType?>
     {
         private readonly VisualElement container;
         private readonly VisualElement contentMover;
         private readonly Stack<HorizontalStackFrameGroup> stack = new();
         public override VisualElement contentContainer => stack.TryPeek(out HorizontalStackFrameGroup result) ? result : this;
-
-        [UxmlAttribute]
-        public string StackId { get; set; }
-
-        public HorizontalStackContainer()
+        private readonly List<Action> deregistrations = new();
+        public string StackId { get; }
+        private TValueType? currentValue = default;
+        public TValueType? value
         {
+            get => currentValue;
+            set
+            {
+                TValueType? prevValue = currentValue;
+                SetValueWithoutNotify(value);
+                ChangeEvent<TValueType?> changeEvent = ChangeEvent<TValueType?>.GetPooled(prevValue, currentValue);
+                SendEvent(changeEvent);
+            }
+        }
+
+        public HorizontalStackContainer(string stackId)
+        {
+            StackId = stackId;
             StyleSheet styleSheet = Asserts.IsNotNull(AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.ncthbrt.polymorphism-for-unity/Editor/Containers/Stacks/StackStyles.uss"));
             styleSheets.Add(styleSheet);
             AddToClassList("poly_horizontalstack__root");
@@ -259,16 +278,117 @@ namespace Polymorphism4Unity.Editor.Containers
 
         private void Init()
         {
-            RegisterCallbackOnce<GeometryChangedEvent>(evt =>
+            RegisterCallback<AttachToPanelEvent>(evt =>
             {
-                RegisterCallback<IStackCommand>(cmd =>
-                {
-                    if (cmd.StackId != StackId)
-                    {
-                        return;
-                    }                
-                });
+                RegisterStackAction<PushFrameCommand>(PushFrame);
+                RegisterStackAction<PushGroupCommand>(PushGroup);
+                RegisterStackAction<PopFrameCommand>(PopFrame);
+                RegisterStackAction<PopGroupCommand>(PopGroup);
+                RegisterStackAction<PopAllCommand>(PopAll);
+                RegisterStackAction<PopGroupWithResultCommand>(PopGroupWithResult);
+                RegisterStackAction<PopAllWithResultCommand>(PopAllWithResult);
+                RegisterStackAction<ReplaceFrameCommand>(ReplaceFrame);
+                RegisterStackAction<ReplaceGroupCommand>(ReplaceGroup);
+                RegisterTrackedCallback<TransitionEndEvent>(HandleTransitionEnd);
+                RegisterTrackedCallback<TransitionStartEvent>(HandleTransitionStart);
+                RegisterTrackedCallback<TransitionCancelEvent>(HandleTransitionCancel);
             });
+            RegisterCallback<DetachFromPanelEvent>(DeregisterAll);
+        }
+
+        private void DeregisterAll(DetachFromPanelEvent _)
+        {
+            deregistrations.InvokeAll();
+            deregistrations.Clear();
+        }
+
+        private void HandleTransitionCancel(TransitionCancelEvent transitionCancelEvent)
+        {
+
+        }
+
+
+        private void HandleTransitionStart(TransitionStartEvent transitionStartEvent)
+        {
+
+        }
+        private void HandleTransitionEnd(TransitionEndEvent transitionEndEvent)
+        {
+
+        }
+
+        private void RegisterTrackedCallback<T>(EventCallback<T> callback, TrickleDown useTrickleDown = TrickleDown.NoTrickleDown) where T : EventBase<T>, new()
+        {
+            deregistrations.Add(() => UnregisterCallback(callback));
+            RegisterCallback(callback, useTrickleDown);
+        }
+
+
+        private void RegisterTrackedAction<T>(Action<T> callback, TrickleDown useTrickleDown = TrickleDown.NoTrickleDown) where T : EventBase<T>, new()
+        {
+            EventCallback<T> eventCallback = callback.ToEventCallback();
+            RegisterTrackedCallback(eventCallback, useTrickleDown);
+        }
+
+        private void RegisterStackAction<T>(Action<T> callback, TrickleDown useTrickleDown = TrickleDown.NoTrickleDown) where T : StackCommand<T>, new()
+        {
+            EventCallback<T> eventCallback = Iff(IsThisStack, callback).ToEventCallback();
+            deregistrations.Add(() => UnregisterCallback(eventCallback));
+            RegisterCallback(eventCallback, useTrickleDown);
+        }
+
+        private bool IsThisStack(IStackCommand cmd) =>
+            cmd.StackId == StackId;
+
+
+        private void PushFrame(PushFrameCommand pushFrameCommand)
+        {
+
+        }
+
+        private void PopFrame(PopFrameCommand pushFrameCommand)
+        {
+
+        }
+
+        private void PopGroup(PopGroupCommand popGroupCommand)
+        {
+
+        }
+
+        private void PushGroup(PushGroupCommand pushGroupCommand)
+        {
+
+        }
+
+        private void PopGroupWithResult(PopGroupWithResultCommand popGroupWithResultCommand)
+        {
+
+        }
+
+        private void PopAllWithResult(PopAllWithResultCommand popAllWithResultCommand)
+        {
+
+        }
+
+        private void PopAll(PopAllCommand popAllCommand)
+        {
+
+        }
+
+        private void ReplaceGroup(ReplaceGroupCommand replaceGroupCommand)
+        {
+
+        }
+
+        private void ReplaceFrame(ReplaceFrameCommand replaceFrameCommand)
+        {
+
+        }
+
+        public void SetValueWithoutNotify(TValueType? newValue)
+        {
+            currentValue = newValue;
         }
     }
 }
