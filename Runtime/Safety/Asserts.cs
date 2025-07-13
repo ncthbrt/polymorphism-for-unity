@@ -1,21 +1,29 @@
 #nullable enable
 using System;
+using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 
 namespace Polymorphism4Unity.Safety
 {
-    public static partial class Asserts
+    [PublicAPI]
+    public static class Asserts
     {
+        [ContractAnnotation(" => halt")]
         public static Exception Fail(string assertion)
         {
             throw new AssertionException(assertion);
         }
 
+        [ContractAnnotation(" => halt")]
         public static Exception Never(string assertion)
         {
             throw new AssertionException(assertion);
         }
 
-        public static T IsNotNull<T>(T? a)
+
+        [AssertionMethod]
+        [ContractAnnotation("a:null => halt; a:notnull => a:notnull")]
+        public static T IsNotNull<T>([NoEnumeration, AssertionCondition(AssertionConditionType.IS_NOT_NULL)] T? a)
         {
             if (a is null)
             {
@@ -24,6 +32,7 @@ namespace Polymorphism4Unity.Safety
             return a;
         }
 
+        [AssertionMethod]
         public static string IsNotNullOrEmpty(string? a)
         {
             return IsNotEqual(IsNotNull(a), string.Empty);
@@ -38,7 +47,9 @@ namespace Polymorphism4Unity.Safety
             return IsEqual(a, string.Empty);
         }
 
-        public static T? IsNull<T>(T? a)
+        [ContractAnnotation("a:null => null; a:notnull => halt")]
+        [AssertionMethod]
+        public static T? IsNull<T>([NoEnumeration, AssertionCondition(AssertionConditionType.IS_NULL)] T? a)
         {
             if (a is not null)
             {
@@ -46,6 +57,37 @@ namespace Polymorphism4Unity.Safety
             }
             return default;
         }
+
+        public static Match HasMatch(string a, [RegexPattern] string pattern)
+        {
+            Regex regex = new(pattern);
+            if (regex.Match(a) is { Value: not "" } match)
+            {
+                return match;
+            }
+            throw new BinaryAssertionException<string, Regex>(a, regex, $"(new {nameof(Regex)}({nameof(pattern)})).IsMatch(a)");
+        }
+
+        public static MatchCollection HasMatches(string a, [RegexPattern] string pattern)
+        {
+            Regex regex = new(pattern);
+            if (regex.Matches(a) is { Count: > 0 } matches)
+            {
+                return matches;
+            }
+            throw new BinaryAssertionException<string, Regex>(a, regex, $"(new {nameof(Regex)}({nameof(pattern)})).IsMatch(a)");
+        }
+
+        public static string HasNoMatch(string a, [RegexPattern] string pattern)
+        {
+            Regex regex = new(pattern);
+            if (regex.Match(a) is { Value: "" })
+            {
+                return a;
+            }
+            throw new BinaryAssertionException<string, Regex>(a, regex, $"(new {nameof(Regex)}({nameof(pattern)}).IsMatch(a)) == false");
+        }
+
 
         public static T IsEqual<T>(T a, T b)
         {
@@ -58,7 +100,7 @@ namespace Polymorphism4Unity.Safety
         }
 
         public static T IsGreater<T>(T a, T b)
-            where T : notnull, IComparable<T>
+            where T : IComparable<T>
         {
             if (a.CompareTo(b) > 0)
             {
@@ -68,7 +110,7 @@ namespace Polymorphism4Unity.Safety
         }
 
         public static T IsLess<T>(T a, T b)
-            where T : notnull, IComparable<T>
+            where T : IComparable<T>
         {
             if (a.CompareTo(b) < 0)
             {
@@ -78,7 +120,7 @@ namespace Polymorphism4Unity.Safety
         }
 
         public static T IsGreaterOrEqual<T>(T a, T b)
-            where T : notnull, IComparable<T>
+            where T : IComparable<T>
         {
             if (a.CompareTo(b) >= 0)
             {
@@ -89,7 +131,7 @@ namespace Polymorphism4Unity.Safety
         }
 
         public static T IsLessOrEqual<T>(T a, T b)
-            where T : notnull, IComparable<T>
+            where T : IComparable<T>
         {
             if (a.CompareTo(b) <= 0)
             {
@@ -108,7 +150,9 @@ namespace Polymorphism4Unity.Safety
             return a;
         }
 
-        public static bool IsTrue(bool a)
+        [AssertionMethod]
+        [ContractAnnotation("a:true => true; a:false => halt")]
+        public static bool IsTrue([AssertionCondition(AssertionConditionType.IS_TRUE)] bool a)
         {
             if (!a)
             {
@@ -117,7 +161,9 @@ namespace Polymorphism4Unity.Safety
             return true;
         }
 
-        public static bool IsFalse(bool a)
+        [AssertionMethod]
+        [ContractAnnotation("a:false => false; a:true => halt")]
+        public static bool IsFalse([AssertionCondition(AssertionConditionType.IS_FALSE)] bool a)
         {
             if (a)
             {

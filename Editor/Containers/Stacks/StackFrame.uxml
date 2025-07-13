@@ -1,9 +1,8 @@
-<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
-    <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Containers/Stacks/StackStyles.uss?fileID=7433441132597879392&amp;guid=8719b48db366a4a518f6ca126f8f5ea3&amp;type=3#StackStyles" />
-    <editor:Toolbar name="Header" focusable="true" class="poly_horizontalstack-header__toolbar">
-        <editor:ToolbarButton name="BackButton" text="Current Frame" emoji-fallback-support="false" enable-rich-text="true" selectable="false" double-click-selects-word="false" triple-click-selects-line="false" class="poly_horizontalstack-header__button">
-            <engine:VisualElement name="BackIcon" picking-mode="Ignore" class="poly_horizontalstack-header__backicon" />
-        </editor:ToolbarButton>
-    </editor:Toolbar>
-    <engine:VisualElement name="Content" class="poly_horizontalstack__content" />
+<engine:UXML xmlns:engine="UnityEngine.UIElements"
+             noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="./StackStyles.uss" />
+    <engine:Button name="BackButton" text="Current Frame"  class="poly-stackframe-header__root">
+        <engine:VisualElement name="BackIcon" picking-mode="Ignore" class="poly-stackframe-header__back-icon" />
+    </engine:Button>
+    <engine:VisualElement name="Content" class="poly-stackframe__content" />
 </engine:UXML>

@@ -14,35 +14,24 @@ namespace Polymorphism4Unity.Editor.Utils
         private static Func<Type, bool> Matches(TypesFilter filter) =>
              t => TypesFilterExtensions.Matches(filter, t);
 
-        private static readonly Cache<(Type type, TypesFilter filter), Type[]> subtypes = new(
+        private static readonly Cache<(Type type, TypesFilter filter), Type[]> _subtypes = new(
             (args) => TypeCache.GetTypesDerivedFrom(args.type).Where(Matches(args.filter)).ToArray()
         );
 
         public static Type[] GetSubtypes(Type type, TypesFilter filter = TypesFilter.Concretes) =>
-            subtypes[(type, filter)];
+            _subtypes[(type, filter)];
 
 
-        /// <summary>
-        /// Evalauates whether <paramref name="t"/> is a type that can be constructed.
-        /// </summary>
-        /// <param name="t">The <see cref="Type"/> to evaluate.</param>
-        /// <returns>Whether <paramref name="t"/> is a concrete type.</returns>
-        public static bool IsConcreteType(this Type t)
+        public static bool IsConcreteConstructedType(this Type t)
         {
             return t.IsAbstract is false &&
                 t.IsInterface is false &&
-                (t.IsGenericType is false || t.IsConstructedGenericType)
-              ;
+                (t.IsGenericType is false || t.IsConstructedGenericType);
         }
-
-        /// <summary>
-        /// .Gets the default parameterless <see langword="public" /> constructor for <paramref name="t">, if available.
-        /// </summary>
-        /// <param name="t">The <see cref="Type"/> to maybe retrieve the constructor for.</param>
-        /// <returns>The <see cref="ConstructorInfo"/>, if it is available, else.<see langword="null">.</returns>
+        
         public static ConstructorInfo? MaybeGetDefaultPublicConstructor(this Type t)
         {
-            if (!IsConcreteType(t))
+            if (!IsConcreteConstructedType(t))
             {
                 return null;
             }
@@ -54,6 +43,7 @@ namespace Polymorphism4Unity.Editor.Utils
 
         public static bool Is<TParentType>(this Type childType) =>
             typeof(TParentType).IsAssignableFrom(childType);
+        
         public static bool IsNot<TParentType>(this Type childType) =>
             !typeof(TParentType).IsAssignableFrom(childType);
 
@@ -63,7 +53,6 @@ namespace Polymorphism4Unity.Editor.Utils
         public static bool IsNot(this Type childType, Type parentType) =>
             !parentType.IsAssignableFrom(childType);
 
-        public static IDynamicReadonlyInstance ToDynamicReadonlyInstance<TBaseType>(this TBaseType value) =>
-            new DynamicReadonlyInstance<TBaseType>(value);
+        public static DynamicReadonlyInstance<TBaseType> ToDynamicReadonlyInstance<TBaseType>(this TBaseType value) => new(value);
     }
 }

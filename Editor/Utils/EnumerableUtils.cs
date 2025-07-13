@@ -13,6 +13,11 @@ namespace Polymorphism4Unity.Editor.Utils
         {
             yield return item;
         }
+        
+        public static IEnumerable<T> FromItems<T>(params T[] items)
+        {
+            return items;
+        }
 
         public static bool All(this IEnumerable<bool> bools) => bools.All(x => x);
         public static bool Any(this IEnumerable<bool> bools) => bools.Any(x => x);
@@ -31,7 +36,6 @@ namespace Polymorphism4Unity.Editor.Utils
                     yield return value;
                 }
             }
-            yield break;
         }
 
         public static IEnumerable<T> WhereNot<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate) =>
@@ -85,7 +89,17 @@ namespace Polymorphism4Unity.Editor.Utils
                 action();
             }
         }
+        
+        public static bool Any<TSource, TType>(this IEnumerable<TSource> source) => 
+            source.Any(x => x is TType);
+        
+        public static bool All<TSource, TType>(this IEnumerable<TSource> source) => 
+            source.All(x => x is TType);
 
-
+        public static TSource? FirstOrDefault<TSource, TType>(this IEnumerable<TSource> source) => 
+                source.FirstOrDefault(x => x is TType);
+        
+        public static TSource First<TSource, TType>(this IEnumerable<TSource> source) =>
+            source.First(x => x is TType);
     }
 }

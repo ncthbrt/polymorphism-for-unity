@@ -21,23 +21,23 @@ namespace Polymorphism4Unity.Editor.Collections
 
         private sealed class NotStartedEnumerationState : IEnumerationState
         {
-            private readonly IEnumerable<TInput> enumerable;
-            private readonly Func<TInput, TKey> keyMapper;
-            private readonly Func<TInput, TValue> valueMapper;
+            private readonly IEnumerable<TInput> _enumerable;
+            private readonly Func<TInput, TKey> _keyMapper;
+            private readonly Func<TInput, TValue> _valueMapper;
 
             public NotStartedEnumerationState(IEnumerable<TInput> enumerable, Func<TInput, TKey> keyMapper, Func<TInput, TValue> valueMapper)
             {
-                this.enumerable = enumerable;
-                this.keyMapper = keyMapper;
-                this.valueMapper = valueMapper;
+                this._enumerable = enumerable;
+                this._keyMapper = keyMapper;
+                this._valueMapper = valueMapper;
             }
 
             public IEnumerationState Start()
             {
                 try
                 {
-                    IEnumerator<TInput> enumerator = enumerable.GetEnumerator();
-                    return new EnumeratingEnumerationState(enumerator, keyMapper, valueMapper);
+                    IEnumerator<TInput> enumerator = _enumerable.GetEnumerator();
+                    return new EnumeratingEnumerationState(enumerator, _keyMapper, _valueMapper);
                 }
                 catch (Exception e)
                 {
@@ -49,8 +49,8 @@ namespace Polymorphism4Unity.Editor.Collections
             {
                 try
                 {
-                    IEnumerator<TInput> enumerator = enumerable.GetEnumerator();
-                    return new EnumeratingEnumerationState(enumerator, keyMapper, valueMapper).GetEnumerator();
+                    IEnumerator<TInput> enumerator = _enumerable.GetEnumerator();
+                    return new EnumeratingEnumerationState(enumerator, _keyMapper, _valueMapper).GetEnumerator();
                 }
                 catch (Exception e)
                 {
@@ -64,35 +64,35 @@ namespace Polymorphism4Unity.Editor.Collections
             }
         }
 
-        private sealed class EnumeratingEnumerationState : IEnumerationState, IDisposable
+        private sealed class EnumeratingEnumerationState : IEnumerationState
         {
-            private readonly IEnumerator<TInput> enumerator;
-            private readonly Func<TInput, TKey> keyMapper;
-            private readonly Func<TInput, TValue> valueMapper;
+            private readonly IEnumerator<TInput> _enumerator;
+            private readonly Func<TInput, TKey> _keyMapper;
+            private readonly Func<TInput, TValue> _valueMapper;
             public Dictionary<TKey, TValue> Dictionary { get; } = new();
-            public bool Disposed { get; private set; } = false;
+            private bool _disposed;
 
             public EnumeratingEnumerationState(IEnumerator<TInput> enumerator, Func<TInput, TKey> keyMapper, Func<TInput, TValue> valueMapper)
             {
-                this.enumerator = enumerator;
-                this.keyMapper = keyMapper;
-                this.valueMapper = valueMapper;
+                this._enumerator = enumerator;
+                this._keyMapper = keyMapper;
+                this._valueMapper = valueMapper;
             }
 
             public (IEnumerationState nextState, (TKey key, TValue value)? keyValue) TryPullNextElement()
             {
                 try
                 {
-                    TInput element = enumerator.Current;
-                    TKey key = keyMapper(element);
+                    TInput element = _enumerator.Current;
+                    TKey key = _keyMapper(element);
                     (TKey key, TValue value)? keyValue = null;
                     if (!Dictionary.ContainsKey(key))
                     {
-                        TValue value = valueMapper(element);
+                        TValue value = _valueMapper(element);
                         Dictionary[key] = value;
                         keyValue = (key, value);
                     }
-                    if (enumerator.MoveNext())
+                    if (_enumerator.MoveNext())
                     {
                         return (this, keyValue);
                     }
@@ -112,15 +112,15 @@ namespace Polymorphism4Unity.Editor.Collections
 
             public void Dispose()
             {
-                if (!Disposed)
+                if (!_disposed)
                 {
                     try
                     {
-                        enumerator.Dispose();
+                        _enumerator.Dispose();
                     }
                     finally
                     {
-                        Disposed = true;
+                        _disposed = true;
                     }
                 }
             }
@@ -144,7 +144,7 @@ namespace Polymorphism4Unity.Editor.Collections
 
         private sealed class CompletedEnumerationState : IEnumerationState
         {
-            public Dictionary<TKey, TValue> Dictionary { get; } = new();
+            public Dictionary<TKey, TValue> Dictionary { get; }
 
             public CompletedEnumerationState(Dictionary<TKey, TValue> values)
             {
@@ -195,11 +195,11 @@ namespace Polymorphism4Unity.Editor.Collections
             }
         }
 
-        private IEnumerationState state;
+        private IEnumerationState _state;
 
         public LazyDictionary(IEnumerable<TInput> enumerable, Func<TInput, TKey> keyMapper, Func<TInput, TValue> valueMapper)
         {
-            state = new NotStartedEnumerationState(enumerable, keyMapper, valueMapper);
+            _state = new NotStartedEnumerationState(enumerable, keyMapper, valueMapper);
         }
 
         public TValue this[TKey key]
@@ -207,11 +207,11 @@ namespace Polymorphism4Unity.Editor.Collections
             get
             {
                 EnsurePreconditions();
-                if (state is CompletedEnumerationState completed)
+                if (_state is CompletedEnumerationState completed)
                 {
                     return completed.Dictionary[key];
                 }
-                if (state is EnumeratingEnumerationState enumerating)
+                if (_state is EnumeratingEnumerationState enumerating)
                 {
                     if (enumerating.Dictionary.TryGetValue(key, out TValue? value))
                     {
@@ -248,8 +248,8 @@ namespace Polymorphism4Unity.Editor.Collections
 
         public void Clear()
         {
-            state.Dispose();
-            state = new CompletedEnumerationState(new Dictionary<TKey, TValue>());
+            _state.Dispose();
+            _state = new CompletedEnumerationState(new Dictionary<TKey, TValue>());
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item) =>
@@ -264,11 +264,11 @@ namespace Polymorphism4Unity.Editor.Collections
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             EnsurePreconditions();
-            if (state is CompletedEnumerationState completed)
+            if (_state is CompletedEnumerationState completed)
             {
                 return completed.Dictionary.GetEnumerator();
             }
-            else if (state is EnumeratingEnumerationState enumerating)
+            else if (_state is EnumeratingEnumerationState enumerating)
             {
                 return GetEnumerableFromEnumeratingState(enumerating).GetEnumerator();
             }
@@ -280,13 +280,13 @@ namespace Polymorphism4Unity.Editor.Collections
             while (true)
             {
                 (IEnumerationState nextState, (TKey key, TValue value)? maybeKeyValue) = enumerating.TryPullNextElement();
-                state = nextState;
+                _state = nextState;
                 ThrowIfErrorOrDisposedState();
                 if (maybeKeyValue is { } keyValue)
                 {
                     yield return new KeyValuePair<TKey, TValue>(keyValue.key, keyValue.value);
                 }
-                if (state is not EnumeratingEnumerationState nextEnumerating)
+                if (_state is not EnumeratingEnumerationState nextEnumerating)
                 {
                     yield break;
                 }
@@ -298,11 +298,11 @@ namespace Polymorphism4Unity.Editor.Collections
         public bool TryGetValue(TKey key, out TValue? value)
         {
             EnsurePreconditions();
-            if (state is CompletedEnumerationState completed)
+            if (_state is CompletedEnumerationState completed)
             {
                 return completed.Dictionary.TryGetValue(key, out value);
             }
-            else if (state is EnumeratingEnumerationState enumerating)
+            else if (_state is EnumeratingEnumerationState enumerating)
             {
                 if (enumerating.Dictionary.TryGetValue(key, out value))
                 {
@@ -334,30 +334,30 @@ namespace Polymorphism4Unity.Editor.Collections
         {
             try
             {
-                state.Dispose();
+                _state.Dispose();
             }
             finally
             {
-                state = new DisposedEnumerationState();
+                _state = new DisposedEnumerationState();
             }
         }
 
         private void StartEnumerationIfNecessary()
         {
-            if (state is NotStartedEnumerationState notStarted)
+            if (_state is NotStartedEnumerationState notStarted)
             {
-                state = notStarted.Start();
+                _state = notStarted.Start();
                 ThrowIfErrorOrDisposedState();
             }
         }
 
         private void ThrowIfErrorOrDisposedState()
         {
-            if (state is ErrorEnumerationState error)
+            if (_state is ErrorEnumerationState error)
             {
                 throw error.Exception;
             }
-            if (state is DisposedEnumerationState)
+            if (_state is DisposedEnumerationState)
             {
                 throw new ObjectDisposedException(nameof(LazyDictionary<TInput, TKey, TValue>));
             }
@@ -371,19 +371,19 @@ namespace Polymorphism4Unity.Editor.Collections
 
         public Exception StateFailsPostCondition()
         {
-            throw Asserts.Fail($"{nameof(state)} is {nameof(EnumeratingEnumerationState)} or ${nameof(CompletedEnumerationState)}");
+            throw Asserts.Fail($"{nameof(_state)} is {nameof(EnumeratingEnumerationState)} or ${nameof(CompletedEnumerationState)}");
         }
 
         private CompletedEnumerationState Force()
         {
             EnsurePreconditions();
-            IEnumerationState initialState = state;
+            IEnumerationState initialState = _state;
             foreach (IEnumerationState newState in initialState)
             {
-                state = newState;
+                _state = newState;
                 ThrowIfErrorOrDisposedState();
             }
-            return Asserts.IsType<CompletedEnumerationState>(state);
+            return Asserts.IsType<CompletedEnumerationState>(_state);
         }
     }
 }

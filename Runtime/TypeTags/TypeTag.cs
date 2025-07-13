@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using Polymorphism4Unity.Safety;
 using UnityEngine;
 
 namespace Polymorphism4Unity.TypeTags
@@ -24,48 +25,44 @@ namespace Polymorphism4Unity.TypeTags
     {
         [SerializeField]
         private string assemblyQualifiedName = string.Empty;
-        private Type? type = null;
+        private Type? _type;
 
         public Type? Type
         {
-            get => type;
+            get => _type;
             set
             {
                 if (value is null)
                 {
-                    type = null;
+                    _type = null;
                 }
                 if (!typeof(TBaseType).IsAssignableFrom(value))
                 {
                     throw new TypeIsNotSubtypeException<TBaseType>(value);
                 }
-                type = value;
+                _type = value;
             }
         }
 
         public void Set<T>()
             where T : TBaseType
         {
-            type = typeof(T);
+            _type = typeof(T);
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            if (type is null)
-            {
-                assemblyQualifiedName = string.Empty;
-            }
-            else
-            {
-                assemblyQualifiedName = type.AssemblyQualifiedName;
-            }
+            assemblyQualifiedName = 
+                _type is null 
+                    ? string.Empty 
+                    : Asserts.IsNotNullOrEmpty(_type.AssemblyQualifiedName);
         }
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
             if (string.IsNullOrEmpty(assemblyQualifiedName))
             {
-                type = null;
+                _type = null;
             }
             else
             {
@@ -86,6 +83,6 @@ namespace Polymorphism4Unity.TypeTags
         public override int GetHashCode() =>
             HashCode.Combine(Type);
 
-        public void Clear() => type = null;
+        public void Clear() => _type = null;
     }
 }

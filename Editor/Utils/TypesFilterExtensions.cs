@@ -5,13 +5,12 @@ using static Polymorphism4Unity.Enums.TypesFilter;
 
 namespace Polymorphism4Unity.Editor.Utils
 {
-    public static class TypesFilterExtensions
+    internal static class TypesFilterExtensions
     {
         public static bool HasFlag(this TypesFilter filter, TypesFilter value)
         {
             return (filter & value) != 0;
         }
-
 
         public static bool Matches(TypesFilter filter, Type? t)
         {

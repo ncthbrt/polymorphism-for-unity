@@ -6,25 +6,19 @@ using Polymorphism4Unity.Editor.Collections;
 
 namespace Polymorphism4Unity.Editor.Utils
 {
-    internal interface IDynamicReadonlyInstance
+    internal class DynamicReadonlyInstance<TBaseType>
     {
-        object? this[string memberName] { get; }
-        bool TryGetValue(string memberName, Type expectedType, out object? result);
-        bool TryGetValue<TExpectedResult>(string memberName, out TExpectedResult? result);
-        TExpectedResult? GetValue<TExpectedResult>(string memberName);
-        object? GetValue(string memberName, Type expectedType);
-    }
-
-    internal class DynamicReadonlyInstance<TBaseType> : IDynamicReadonlyInstance
-    {
-        const BindingFlags bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance;
-        const MemberTypes memberTypes = MemberTypes.Property | MemberTypes.Field;
-        private static readonly Cache<string, MemberInfo[]> memberInfoCache = new(GetMemberInfo);
+        private const BindingFlags DeclaredInstanceFlag = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance;
+        private const MemberTypes MemberTypes = System.Reflection.MemberTypes.Property | System.Reflection.MemberTypes.Field;
+        
+        // ReSharper disable once StaticMemberInGenericType
+        // This is correct as we want a separate cache for each member of the TBaseType
+        private static readonly Cache<string, MemberInfo[]> _memberInfoCache = new(GetMemberInfo);
 
         private static MemberInfo[] GetMemberInfo(string memberName)
         {
             List<MemberInfo> result = new();
-            foreach (MemberInfo memberInfo in typeof(TBaseType).GetMember(memberName, memberTypes, bindingFlags))
+            foreach (MemberInfo memberInfo in typeof(TBaseType).GetMember(memberName, MemberTypes, DeclaredInstanceFlag))
             {
                 if (memberInfo is PropertyInfo or FieldInfo)
                 {
@@ -34,31 +28,31 @@ namespace Polymorphism4Unity.Editor.Utils
             return result.ToArray();
         }
 
-        private readonly TBaseType value;
+        private readonly TBaseType _value;
         public DynamicReadonlyInstance(TBaseType value)
         {
-            this.value = value;
+            this._value = value;
         }
 
         public object? this[string memberName]
         {
             get
             {
-                foreach (MemberInfo memberInfo in memberInfoCache[memberName])
+                foreach (MemberInfo memberInfo in _memberInfoCache[memberName])
                 {
                     try
                     {
                         switch (memberInfo)
                         {
                             case PropertyInfo propertyInfo:
-                                return propertyInfo.GetValue(value);
+                                return propertyInfo.GetValue(_value);
                             case FieldInfo fieldInfo:
-                                return fieldInfo.GetValue(value);
+                                return fieldInfo.GetValue(_value);
                         }
                     }
                     catch
                     {
-                        continue;
+                        // ignored
                     }
                 }
                 throw MemberNotFound(memberName);
@@ -67,38 +61,46 @@ namespace Polymorphism4Unity.Editor.Utils
 
         public bool TryGetValue(string memberName, Type expectedType, out object? result)
         {
-            foreach (MemberInfo memberInfo in memberInfoCache[memberName])
-            {
-                try
+            foreach (MemberInfo memberInfo in _memberInfoCache[memberName])
+            { 
+                switch (memberInfo)
                 {
-                    switch (memberInfo)
-                    {
-
-                        case PropertyInfo propertyInfo:
+                    case PropertyInfo propertyInfo:
+                        {
+                            object? propertyValue;
+                            try
                             {
-                                object? propertyValue = propertyInfo.GetValue(value);
-                                if (propertyValue.GetType().Is(expectedType))
-                                {
-                                    result = propertyValue;
-                                    return true;
-                                }
-                                break;
+                                propertyValue = propertyInfo.GetValue(_value);
                             }
-                        case FieldInfo fieldInfo:
+                            catch
                             {
-                                object? fieldValue = fieldInfo.GetValue(value);
-                                if (fieldValue.GetType().Is(expectedType))
-                                {
-                                    result = fieldValue;
-                                    return true;
-                                }
-                                break;
+                                continue;
                             }
-                    }
-                }
-                catch
-                {
-                    continue;
+                            if (propertyValue is null || propertyValue.GetType().Is(expectedType))
+                            {
+                                result = propertyValue;
+                                return true;
+                            }
+                            break;
+                        }
+                    case FieldInfo fieldInfo:
+                        {
+                            object? fieldValue;
+                            try
+                            {
+                                fieldValue = fieldInfo.GetValue(_value);
+                            }
+                            catch
+                            {
+                                continue;
+                            }
+                            if (fieldValue is null || fieldValue.GetType().Is(expectedType))
+                            {
+                                result = fieldValue;
+                                return true;
+                            }
+                            break;
+                        }
                 }
             }
             result = null;
@@ -107,48 +109,58 @@ namespace Polymorphism4Unity.Editor.Utils
 
         public bool TryGetValue<TExpectedResult>(string memberName, out TExpectedResult? result)
         {
-            foreach (MemberInfo memberInfo in memberInfoCache[memberName])
+            foreach (MemberInfo memberInfo in _memberInfoCache[memberName])
             {
-                try
+                switch (memberInfo)
                 {
-                    switch (memberInfo)
-                    {
-                        case PropertyInfo propertyInfo:
+                    case PropertyInfo propertyInfo:
+                        {
+                            object? propertyValue;
+                            try
                             {
-                                object? propertyValue = propertyInfo.GetValue(value);
-                                if (propertyValue is null)
-                                {
+                                propertyValue = propertyInfo.GetValue(_value);
+                            }
+                            catch
+                            {
+                                continue;
+                            }
+                            switch (propertyValue)
+                            {
+                                case null:
                                     result = default;
                                     return true;
-                                }
-                                if (propertyValue is TExpectedResult expectedResult)
-                                {
+                                case TExpectedResult expectedResult:
                                     result = expectedResult;
                                     return true;
-                                }
-                                break;
                             }
-                        case FieldInfo fieldInfo:
+                            break;
+                        }
+                    case FieldInfo fieldInfo:
+                        {
+                            object? fieldValue;
+                            try
                             {
-                                object? fieldValue = fieldInfo.GetValue(value);
-                                if (fieldValue is null)
-                                {
+                                fieldValue = fieldInfo.GetValue(_value);
+                            }
+                            catch
+                            {
+                                continue;
+                            }
+                            switch (fieldValue)
+                            {
+                                case null:
                                     result = default;
                                     return true;
-                                }
-                                if (fieldValue is TExpectedResult expectedResult)
-                                {
+                                case TExpectedResult expectedResult:
                                     result = expectedResult;
                                     return true;
-                                }
-                                break;
                             }
-                    }
+                            break;
+                        }
+                    default:
+                        continue;
                 }
-                catch
-                {
-                    continue;
-                }
+            
             }
             result = default;
             return false;
@@ -160,13 +172,13 @@ namespace Polymorphism4Unity.Editor.Utils
         private Exception MemberNotFound(string memberName) =>
             new KeyNotFoundException($"Could not find value of member with name {memberName} inside type {typeof(TBaseType).FullName}.");
 
-        public TExpectedResult? GetValue<TExpectedResult>(string memberName) =>
+        public TExpectedResult GetValue<TExpectedResult>(string memberName) =>
             TryGetValue(memberName, out TExpectedResult? result)
                 ? result!
                 : throw MemberNotFound(memberName, typeof(TExpectedResult));
 
         public object? GetValue(string memberName, Type expectedType) =>
-             TryGetValue(memberName, expectedType, out object? result)
+            TryGetValue(memberName, expectedType, out object? result)
                 ? result
                 : throw MemberNotFound(memberName, expectedType);
     }

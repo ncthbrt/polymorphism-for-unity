@@ -1,16 +1,17 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Polymorphism4Unity.Dictionaries
 {
-    [Serializable]
+    [Serializable,  PublicAPI]
     public class PolymorphicDictionary<TKey, TValue, TKeyValuePair> : Dictionary<TKey?, TValue?>, ISerializationCallbackReceiver
         where TKeyValuePair : IKeyValuePair<TKey, TValue>, new()
     {
         [SerializeField]
-        private TKeyValuePair[] backingData = new TKeyValuePair[0];
+        private TKeyValuePair?[] backingData = Array.Empty<TKeyValuePair>();
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
@@ -18,10 +19,12 @@ namespace Polymorphism4Unity.Dictionaries
             int length = backingData.Length;
             for (int i = 0; i < length; ++i)
             {
-                TKeyValuePair entry = backingData[i];
-                this[entry.Key] = entry.Value;
+                if (backingData[i] is {  Key: not null } entry)
+                {
+                    this[entry.Key] = entry.Value;    
+                }
             }
-            backingData = new TKeyValuePair[0];
+            backingData = Array.Empty<TKeyValuePair>();
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
@@ -41,7 +44,8 @@ namespace Polymorphism4Unity.Dictionaries
             }
         }
     }
-
+    
+    [PublicAPI]
     public class PolymorphicDictionary<TKey, TValue> : PolymorphicDictionary<TKey, TValue, PolymorphicKeyValuePair<TKey, TValue>>
     {
     }

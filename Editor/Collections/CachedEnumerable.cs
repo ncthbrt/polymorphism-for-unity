@@ -18,7 +18,7 @@ namespace Polymorphism4Unity.Editor.Collections
         {
             public IEnumerable<TElement> Enumerable { get; private set; }
 
-            public ICachedEnumerableState? Next
+            public ICachedEnumerableState Next
             {
                 get
                 {
@@ -69,69 +69,68 @@ namespace Polymorphism4Unity.Editor.Collections
                 Exception = exception;
             }
 
-            public ICachedEnumerableState? Next => throw Asserts.Never($"{nameof(Next)} should never be called");
+            public ICachedEnumerableState Next => throw Asserts.Never($"{nameof(Next)} should never be called");
             public TElement Current => throw Asserts.Never($"{nameof(Current)} should never be called");
         }
 
-        private List<TElement> cache = new();
-        private ICachedEnumerableState? state;
+        private readonly List<TElement> _cache = new();
+        private ICachedEnumerableState? _state;
 
         public CachedEnumerable(IEnumerable<TElement> enumerable)
         {
-            state = new NotStartedCachedEnumerableState(enumerable);
+            _state = new NotStartedCachedEnumerableState(enumerable);
         }
 
-        private ICachedEnumerableState? EnsureAndValidatePreconditions()
+        private void EnsureAndValidatePreconditions()
         {
-            if (state is NotStartedCachedEnumerableState notStarted)
+            if (_state is NotStartedCachedEnumerableState notStarted)
             {
-                state = Asserts.IsNotNull(notStarted.Next);
-                if (state is ErrorCachedEnumerableState err)
+                _state = Asserts.IsNotNull(notStarted.Next);
+                if (_state is ErrorCachedEnumerableState err)
                 {
                     throw err.Exception;
                 }
             }
-            Asserts.IsTrue(state is null or EnumeratingCachedEnumerableState or ErrorCachedEnumerableState);
-            return state;
+            Asserts.IsTrue(_state is null or EnumeratingCachedEnumerableState or ErrorCachedEnumerableState);
         }
 
         private void ValidatePostConditions()
         {
-            Asserts.IsNull(state);
+            Asserts.IsNull(_state);
         }
 
         private void ValidationEnumerationInvariant()
         {
-            if (state is ErrorCachedEnumerableState err)
+            if (_state is ErrorCachedEnumerableState err)
             {
                 throw err.Exception;
             }
-            Asserts.IsNotNull(state);
-            Asserts.IsType<EnumeratingCachedEnumerableState>(state!);
+            Asserts.IsNotNull(_state);
+            Asserts.IsType<EnumeratingCachedEnumerableState>(_state!);
         }
 
         public IEnumerator<TElement> GetEnumerator()
         {
             EnsureAndValidatePreconditions();
-            foreach (TElement item in cache)
+            foreach (TElement item in _cache)
             {
                 yield return item;
             }
-            while (state is EnumeratingCachedEnumerableState enumerating)
+            while (_state is EnumeratingCachedEnumerableState enumerating)
             {
                 ValidationEnumerationInvariant();
                 try
                 {
                     TElement item = enumerating.Current;
-                    cache.Add(item);
-                    state = state.Next;
+                    _cache.Add(item);
+                    _state = _state.Next;
                 }
                 catch (Exception e)
                 {
-                    state = new ErrorCachedEnumerableState(e);
+                    _state = new ErrorCachedEnumerableState(e);
                 }
             }
-            Asserts.IsNull(state);
+            Asserts.IsNull(_state);
             ValidatePostConditions();
         }
 

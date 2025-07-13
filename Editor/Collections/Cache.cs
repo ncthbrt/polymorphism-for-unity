@@ -6,9 +6,9 @@ namespace Polymorphism4Unity.Editor.Collections
 {
      public class Cache<TArg, TResult>
      {
-          private readonly Dictionary<object, TResult> values = new();
-          private readonly Func<TArg, TResult> factory;
-          private readonly Func<TArg, object> keySelector;
+          private readonly Dictionary<object, TResult> _values = new();
+          private readonly Func<TArg, TResult> _factory;
+          private readonly Func<TArg, object> _keySelector;
 
           public Cache(Func<TArg, TResult> factory) : this(factory, static arg => arg!)
           {
@@ -16,38 +16,38 @@ namespace Polymorphism4Unity.Editor.Collections
 
           public Cache(Func<TArg, TResult> factory, Func<TArg, object> keySelector)
           {
-               this.factory = factory;
-               this.keySelector = keySelector;
+               this._factory = factory;
+               this._keySelector = keySelector;
           }
 
           public TResult this[TArg arg] => GetValue(arg);
 
           public TResult GetValue(TArg arg)
           {
-               object key = keySelector(arg);
-               if (values.TryGetValue(key, out TResult result))
+               object key = _keySelector(arg);
+               if (_values.TryGetValue(key, out TResult result))
                {
                     return result;
                }
-               result = factory(arg);
-               values[key] = result;
+               result = _factory(arg);
+               _values[key] = result;
                return result;
           }
 
           public bool AlreadyContainsCachedValue(TArg arg)
           {
-               object key = keySelector(arg);
-               return values.ContainsKey(key);
+               object key = _keySelector(arg);
+               return _values.ContainsKey(key);
           }
 
-          public IEnumerable<TResult> Values => values.Values;
-          public int Count => values.Count;
+          public IEnumerable<TResult> Values => _values.Values;
+          public int Count => _values.Count;
 
           public static implicit operator Func<TArg, TResult>(Cache<TArg, TResult> thisCache) => thisCache.GetValue;
 
           public void Clear()
           {
-               values.Clear();
+               _values.Clear();
           }
      }
 }

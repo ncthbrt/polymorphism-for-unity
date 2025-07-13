@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Polymorphism4Unity.Safety;
 using UnityEngine;
 
 namespace Polymorphism4Unity.TypeTags
@@ -27,12 +28,8 @@ namespace Polymorphism4Unity.TypeTags
     public class TypeTagSet<TBaseType> : ISet<Type>, IEquatable<TypeTagSet<TBaseType>>, ISerializationCallbackReceiver
     {
         [SerializeField]
-        private string[] backingDataAssemblyQualifiedTypeNames = new string[0];
-        private readonly HashSet<Type> values = new();
-
-        public int Count => throw new NotImplementedException();
-
-        public bool IsReadOnly => throw new NotImplementedException();
+        private string[] backingDataAssemblyQualifiedTypeNames = Array.Empty<string>();
+        private readonly HashSet<Type> _values = new();
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
         {
@@ -50,20 +47,20 @@ namespace Polymorphism4Unity.TypeTags
                     {
                         continue;
                     }
-                    values.Add(maybeType!);
+                    _values.Add(maybeType);
                 }
             }
-            backingDataAssemblyQualifiedTypeNames = new string[0];
+            backingDataAssemblyQualifiedTypeNames = Array.Empty<string>();
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
-            int count = values.Count;
+            int count = _values.Count;
             backingDataAssemblyQualifiedTypeNames = new string[count];
             int i = 0;
-            foreach (Type type in values)
+            foreach (Type type in this)
             {
-                backingDataAssemblyQualifiedTypeNames[i] = type.AssemblyQualifiedName;
+                backingDataAssemblyQualifiedTypeNames[i] = Asserts.IsNotNullOrEmpty(type.AssemblyQualifiedName);
                 ++i;
             }
         }
@@ -75,35 +72,35 @@ namespace Polymorphism4Unity.TypeTags
                 throw new TypeIsNotSubtypeException<TBaseType>(type);
             }
 
-            return values.Add(type);
+            return _values.Add(type);
         }
 
         public bool Add<T>() where T : TBaseType =>
             Add(typeof(T));
 
         public void ExceptWith(IEnumerable<Type> other) =>
-            values.ExceptWith(other);
+            _values.ExceptWith(other);
 
         public void IntersectWith(IEnumerable<Type> other) =>
-            values.IntersectWith(other);
+            _values.IntersectWith(other);
 
         public bool IsProperSubsetOf(IEnumerable<Type> other) =>
-            values.IsProperSubsetOf(other);
+            _values.IsProperSubsetOf(other);
 
         public bool IsProperSupersetOf(IEnumerable<Type> other) =>
-            values.IsProperSubsetOf(other);
+            _values.IsProperSubsetOf(other);
 
         public bool IsSubsetOf(IEnumerable<Type> other) =>
-            values.IsSubsetOf(other);
+            _values.IsSubsetOf(other);
 
         public bool IsSupersetOf(IEnumerable<Type> other) =>
-            values.IsSubsetOf(other);
+            _values.IsSubsetOf(other);
 
         public bool Overlaps(IEnumerable<Type> other) =>
-            values.Overlaps(other);
+            _values.Overlaps(other);
 
         public bool SetEquals(IEnumerable<Type> other) =>
-            values.SetEquals(other);
+            _values.SetEquals(other);
 
         public void SymmetricExceptWith(IEnumerable<Type> other)
         {
@@ -117,7 +114,7 @@ namespace Polymorphism4Unity.TypeTags
                     throw new TypeIsNotSubtypeException<TBaseType>(otherType);
                 }
             }
-            values.SymmetricExceptWith(otherArr);
+            _values.SymmetricExceptWith(otherArr);
         }
 
         public void UnionWith(IEnumerable<Type> other)
@@ -128,7 +125,7 @@ namespace Polymorphism4Unity.TypeTags
                 {
                     throw new TypeIsNotSubtypeException<TBaseType>(otherType);
                 }
-                values.Add(otherType);
+                _values.Add(otherType);
             }
         }
 
@@ -136,25 +133,25 @@ namespace Polymorphism4Unity.TypeTags
             Add(item);
 
         public void Clear() =>
-            values.Clear();
+            _values.Clear();
 
         public bool Contains(Type item) =>
-            values.Contains(item);
+            _values.Contains(item);
 
         public bool Contains<T>() where T : TBaseType =>
-            values.Contains(typeof(T));
+            _values.Contains(typeof(T));
 
         public void CopyTo(Type[] array, int arrayIndex) =>
-            values.CopyTo(array, arrayIndex);
+            _values.CopyTo(array, arrayIndex);
 
         public bool Remove(Type item) =>
-            values.Remove(item);
+            _values.Remove(item);
 
-        public bool Remove<T>(Type item) where T : TBaseType =>
-            values.Remove(item);
+        public bool Remove<T>() where T : TBaseType =>
+            _values.Remove(typeof(T));
 
         public IEnumerator<Type> GetEnumerator() =>
-            values.GetEnumerator();
+            _values.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() =>
             GetEnumerator();
@@ -163,14 +160,18 @@ namespace Polymorphism4Unity.TypeTags
             ReferenceEquals(this, other)
             || (
                 other is not null
-                && Equals(GetType(), other.GetType())
-                && Equals(values, other.values)
+                && GetType() == other.GetType()
+                && Equals(_values, other._values)
             );
 
         public override bool Equals(object? other) =>
             Equals(other as TypeTagSet<TBaseType>);
 
         public override int GetHashCode() =>
-            HashCode.Combine(values);
+            HashCode.Combine(_values);
+
+        public int Count => _values.Count;
+
+        public bool IsReadOnly => false;
     }
 }

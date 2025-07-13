@@ -1,7 +1,7 @@
-<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
-    <engine:Template name="TypeMenuListToolbarHeader" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenu/TypeMenuListToolbarHeader.uxml?fileID=9197481963319205126&amp;guid=5ec5eaade390445cda3c0f7e067bba1a&amp;type=3#TypeMenuListToolbarHeader" />
-    <engine:Template name="TypeDropdownField" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenu/TypeDropdownField.uxml?fileID=9197481963319205126&amp;guid=acb6068ede88e4700af06fea8c63a0d7&amp;type=3#TypeDropdownField" />
-    <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenu/TypeMenuStyle.uss?fileID=7433441132597879392&amp;guid=51b5882f8b22a422295d3f2bb2afa037&amp;type=3#TypeMenuStyle" />
+<engine:UXML xmlns:engine="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <engine:Template name="TypeMenuListToolbarHeader" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenus/TypeMenuListToolbarHeader.uxml?fileID=9197481963319205126&amp;guid=5ec5eaade390445cda3c0f7e067bba1a&amp;type=3#TypeMenuListToolbarHeader" />
+    <engine:Template name="TypeDropdownField" src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenus/TypeDropdownField.uxml?fileID=9197481963319205126&amp;guid=acb6068ede88e4700af06fea8c63a0d7&amp;type=3#TypeDropdownField" />
+    <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Menus/TypeMenus/TypeMenuStyle.uss?fileID=7433441132597879392&amp;guid=51b5882f8b22a422295d3f2bb2afa037&amp;type=3#TypeMenuStyle" />
     <engine:VisualElement name="Container" class="poly_typemenu__menulist-container">
         <engine:Instance name="Header" template="TypeMenuListToolbarHeader" focusable="true" class="poly_typemenu__menulist-headertemplate" />
         <engine:VisualElement name="GenericSettingsContainer" focusable="true" style="flex-grow: 1;">

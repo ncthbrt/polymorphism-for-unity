@@ -1,6 +1,6 @@
 {
     "name": "Polymorphism4Unity.Editor",
-    "rootNamespace": "Polymorphism4Unity.Editor",
+    "rootNamespace": "Polymorphism4Unity",
     "references": [
         "Polymorphism4Unity"
     ],

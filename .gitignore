@@ -102,3 +102,4 @@ InitTestScene*.unity*
 .DS_Store
 Development/DevelopmentUnityProject/Packages/packages-lock.json
 Development/DevelopmentUnityProject/ProjectSettings/ProjectVersion.txt
+.idea

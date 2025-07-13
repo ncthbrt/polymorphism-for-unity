@@ -1,7 +1,7 @@
 #nullable enable
 using UnityEngine;
 
-namespace Polymorphism4Unity.Attributes
+namespace Polymorphism4Unity.Editor.Menus.TypeMenus
 {
     public enum TypeMenuDisplayMode : uint
     {

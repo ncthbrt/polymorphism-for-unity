@@ -1,10 +1,10 @@
 #nullable enable
 using System;
-using UnityEngine;
+using JetBrains.Annotations;
 
 namespace Polymorphism4Unity.Enums
 {
-    [Flags, Serializable]
+    [Flags, Serializable, PublicAPI]
     public enum TypesFilter : uint
     {
         Nulls = 1 << 0,
