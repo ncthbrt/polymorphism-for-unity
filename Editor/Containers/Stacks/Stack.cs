@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
-using UnityEditor;
 using UnityEngine.UIElements;
 using static Polymorphism4Unity.Editor.Utils.FuncUtils;
 
@@ -36,7 +35,6 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
 
         public Stack()
         {
-            _registrationSet = new RegistrationSet(this);
             this.AddStackStyles();
             AddToClassList("poly-stack__root");
             RegisterCallback<AttachToPanelEvent>(HandleAttachToPanelEvent);
@@ -91,44 +89,21 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         public Task Push(StackFrame frame)
         {
             Task prevOperation = CurrentOperation;
-            frame.StackId = StackId;
             async Task PushFrameInner()
             {
-                await prevOperation;
-                await PushFrameImpl(frame);
+                StackFrame? prev = TryPeek();
+                Add(frame);
+                ++_count;
+                await frame.AnimateIn(IsEmpty, StackId);
+                if (prev != null)
+                {
+                    prev.visible = false;    
+                }
             }
-            Task operation = PushFrameInner();
-            CurrentOperation = operation.SwallowCancellations();
-            return operation;
+            Task newOperation = PushFrameInner();
+            CurrentOperation = Task.WhenAll(prevOperation, newOperation.SwallowCancellations());
+            return newOperation;
         }
-        
-        private Task PushFrameImpl(StackFrame frame)
-        {
-            frame.StackId = StackId;
-            using RegistrationSet registrationSet = new(frame);
-            TaskCompletionSource<bool> taskCompletionSource = new();
-            if (frame is { Header: not null } stackFrame)
-            {
-                stackFrame.Header.EnableBackButton = !IsEmpty;
-            }
-            
-            void HandleTransitionEnd(TransitionEndEvent endEvent)
-            {
-                taskCompletionSource.TrySetResult(true);
-            }
-            
-            void HandleTransitionCancel(TransitionCancelEvent cancelEvent)
-            {
-                taskCompletionSource.TrySetCanceled();
-            }
-            registrationSet.RegisterCallback<TransitionEndEvent>(HandleTransitionEnd);
-            registrationSet.RegisterCallback<TransitionCancelEvent>(HandleTransitionCancel);
-            frame.AddToClassList("animating");
-            Add(frame);
-            ++_count;
-            return taskCompletionSource.Task;
-        }
-
 
         private Task<StackFrame?> TryPopFrame()
         {
@@ -140,7 +115,17 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             async Task<StackFrame?> PopFrameInner()
             {
                 AssertNotEmpty();
-                return await PopFrameImpl();
+                StackFrame current = Peek();
+                --_count;
+                if (await current.AnimateOut())
+                {
+                    current.RemoveFromHierarchy();    
+                }
+                else
+                {
+                    ++_count;
+                }
+                return current;
             }
             Task<StackFrame?> newOperation = PopFrameInner();
             CurrentOperation =  Task.WhenAll(prevOperation, newOperation.SwallowCancellations());

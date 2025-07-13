@@ -1,41 +1,59 @@
 #nullable enable
+using JetBrains.Annotations;
 using UnityEngine.UIElements;
 
 namespace Polymorphism4Unity.Editor.Containers.Stacks
 {
-    public class StackFrameHeader : VisualElement
+    
+    [UxmlElement]
+    public partial class StackFrameHeader : VisualElement
     {
-        private readonly string _stackId;
-        private readonly string _frameName;
-        private bool _enableBackButton;
+        private string _headerText = "Placeholder Text";
+        private bool _navigateBackEnabled;
 
-        public bool EnableBackButton
+        [UxmlAttribute, UsedImplicitly]
+        public bool NavigateBackEnabled
         {
+            get => _navigateBackEnabled;
             set
             {
-                bool change = _enableBackButton != value;
-                _enableBackButton = value;
+                bool change = _navigateBackEnabled != value || _contents == null;
+                _navigateBackEnabled = value;
                 if (!change)
                 {
                     return;
                 }
                 _contents?.RemoveFromHierarchy();
                 _contents =
-                    _enableBackButton
+                    _navigateBackEnabled
                         ? MakeButton()
                         : MakeLabel();
-                _contents.text = _frameName;
+                _contents.text = _headerText;
                 Add(_contents);
             }
         }
+        
+        [UxmlAttribute, UsedImplicitly]
+        public string HeaderText
+        {
+            get => _headerText;
+            set
+            {
+                _headerText = value;
+                if (_contents is not null)
+                {
+                    _contents.text = value;    
+                }
+            }
+        }
+
+        public string? StackId { get; set; }
 
         private TextElement? _contents;
 
 
-        public StackFrameHeader(string stackId, string frameName)
+        public StackFrameHeader()
         {
-            _stackId = stackId;
-            _frameName = frameName;
             this.AddStackStyles();
         }
 
@@ -43,7 +61,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         {
             Label label = new()
             {
-                text = _frameName
+                text = _headerText
             };
             label.AddToClassList("poly-stackframe-header__root");
             return label;
@@ -51,19 +69,27 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
 
         private TextElement MakeButton()
         {
-            Button button = new(HandleClicked);
-            button.text = _frameName;
-            VisualElement backIcon = new VisualElement()
+            Button button = new(HandleClicked)
+            {
+                text = _headerText
+            };
+            VisualElement backIcon = new()
             {
                 pickingMode = PickingMode.Ignore
             };
+            button.AddToClassList("poly-stackframe-header__root");
             backIcon.AddToClassList("unity-button");
             backIcon.AddToClassList("poly-stackframe-header__back-icon");
             button.Add(backIcon);
             return button;
         }
 
-        private void HandleClicked() =>
-            SendEvent(PopFrame.GetPooled(_stackId));
+        private void HandleClicked()
+        {
+            if (StackId is { Length: > 0  } stackId)
+            {
+                SendEvent(PopFrame.GetPooled(stackId));    
+            }
+        }
     }
 }

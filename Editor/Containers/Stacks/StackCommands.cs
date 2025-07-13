@@ -52,10 +52,11 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             PushFrame command = GetPooled();
             command.commandName = _cmdName;
             command._stackId = Asserts.IsNotNullOrEmpty(stackId);
-            command.Frame = new StackFrame
+            command.Frame = new StackFrame();
+            if (header is not null)
             {
-                Header = header
-            };
+                command.Frame.Header = header;
+            }
             command.Frame.AddRange(frameContents);
             return command;
         }
