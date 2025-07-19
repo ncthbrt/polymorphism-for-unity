@@ -1,6 +1,8 @@
 <engine:UXML xmlns:engine="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Containers/Stacks/StackStyles.uss?fileID=7433441132597879392&amp;guid=8719b48db366a4a518f6ca126f8f5ea3&amp;type=3#StackStyles" />
     <Polymorphism4Unity.Editor.Containers.Stacks.Stack stack-id="FrogStack">
-        <Polymorphism4Unity.Editor.Containers.Stacks.StackFrame header-text="FrogText" navigate-back-enabled="true" />
+        <Polymorphism4Unity.Editor.Containers.Stacks.StackFrame>
+            <engine:DropdownField label="Dropdown" />
+        </Polymorphism4Unity.Editor.Containers.Stacks.StackFrame>
     </Polymorphism4Unity.Editor.Containers.Stacks.Stack>
 </engine:UXML>

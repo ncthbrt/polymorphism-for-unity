@@ -9,10 +9,12 @@
 }
 
 .poly-stackframe__root {
-    flex-grow: 1;
+    flex-grow: 0;
+    flex-shrink: 0;
     width: 100%;
+    height: 100%;
     flex-direction: column;
-    translate: 0 0;
+    translate: 110% 0;
     -unity-text-align: middle-center;
 }
 
@@ -53,7 +55,14 @@
     background-image: var(--unity-icons-arrow_left);
     height: var(--unity-metrics-toolbar-height);
     width: var(--unity-metrics-toolbar-height);
+    margin: 0;
+    padding: 0;
     border-width: 0;
+    align-self: center;
+    background-position-x: center;
+    background-position-y: center;
+    margin-top: -1px;
+    background-size: auto;
 }
 
 .poly-stackframe__content {

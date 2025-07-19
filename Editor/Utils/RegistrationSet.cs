@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine.UIElements;
 
 namespace Polymorphism4Unity.Editor.Utils
@@ -14,10 +16,12 @@ namespace Polymorphism4Unity.Editor.Utils
     {
         private readonly CallbackEventHandler _handler;
         private readonly Dictionary<(object callback, TrickleDown useTrickleDown), Action> _listeners = new();
+        private readonly SynchronizationContext _synchronizationContext;
 
         public RegistrationSet(CallbackEventHandler handler)
         {
             _handler = handler;
+            _synchronizationContext = SynchronizationContext.Current;
         }
         
         public void RegisterCallback<TEvent>(EventCallback<TEvent> callback, TrickleDown useTrickleDown = TrickleDown.NoTrickleDown)
@@ -55,6 +59,17 @@ namespace Polymorphism4Unity.Editor.Utils
             _handler.RegisterCallback<TEventType>(Handler);
             _listeners.Add((callback, useTrickleDown), () => { _handler.UnregisterCallback<TEventType>(Handler); });
             #endif
+        }
+
+        public void AttachedToTask(Task task)
+        {
+            task.ContinueWith(_ =>
+            {
+                _synchronizationContext.Post(self =>
+                {
+                    ((RegistrationSet)self).Dispose();
+                }, this);
+            });
         }
         
         public void Dispose()

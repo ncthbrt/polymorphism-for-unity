@@ -9,8 +9,11 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
     [UxmlElement(nameof(StackFrame))]
     public sealed partial class StackFrame : VisualElement
     {
+        
+        private const string AnimatingOutClassName = "poly-stackframe__animating-out";
         private const string StableClassName = "poly-stackframe__stable";
-        public override VisualElement contentContainer { get; }
+        private const string AnimatingInClassName = "poly-stackframe__animating-in";
+        public override VisualElement contentContainer { get; private set; }
 
         private StackFrameHeader? _maybeHeader;
 
@@ -79,11 +82,11 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             contentContainer.AddToClassList("poly-stackframe__content");
         }
 
-        public Task<bool> AnimateIn(bool enableBackButton, string stackId)
+        public Task AnimateIn(bool enableBackButton, string stackId)
         {
             visible = true;
-            const string animatingInClassName = "poly-stackframe__animating-in";
-            using RegistrationSet registrationSet = new(this);
+            SetEnabled(false);
+            RegistrationSet registrationSet = new(this);
             TaskCompletionSource<bool> taskCompletionSource = new();
             if (_maybeHeader is not null)
             {
@@ -93,34 +96,73 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
 
             void HandleTransitionEnd(TransitionEndEvent _)
             {
+                PostAnimateIn();
                 taskCompletionSource.TrySetResult(true);
-                SetEnabled(true);
-                RemoveFromClassList(animatingInClassName);
-                AddToClassList(StableClassName);
             }
-
+            
+            void HandleTransitionCancel(TransitionCancelEvent _)
+            {
+                PostAnimateIn();
+                taskCompletionSource.SetCanceled();
+            }
             registrationSet.RegisterCallbackOnce<TransitionEndEvent>(HandleTransitionEnd);
-            AddToClassList(animatingInClassName);
+            registrationSet.RegisterCallbackOnce<TransitionCancelEvent>(HandleTransitionCancel);
+            AddToClassList(AnimatingInClassName);
+            registrationSet.AttachedToTask(taskCompletionSource.Task);
             return taskCompletionSource.Task;
         }
-
-        public Task<bool> AnimateOut()
+        public Task AnimateOut()
         {
-            const string animatingOutClassName = "poly-stackframe__animating-out";
             using RegistrationSet registrationSet = new(this);
             TaskCompletionSource<bool> taskCompletionSource = new();
             SetEnabled(false);
             void HandleTransitionEnd(TransitionEndEvent _)
             {
-                visible = false;
-                RemoveFromHierarchy();
-                RemoveFromClassList(animatingOutClassName);
-                RemoveFromClassList(StableClassName);
+                PostAnimateOut();
                 taskCompletionSource.TrySetResult(true);
             }
+            void HandleTransitionCancel(TransitionCancelEvent _)
+            {
+                PostAnimateOut();
+                taskCompletionSource.SetCanceled();
+            }
             registrationSet.RegisterCallbackOnce<TransitionEndEvent>(HandleTransitionEnd);
-            AddToClassList(animatingOutClassName);
+            registrationSet.RegisterCallbackOnce<TransitionCancelEvent>(HandleTransitionCancel);
+            registrationSet.AttachedToTask(taskCompletionSource.Task);
+            AddToClassList(AnimatingOutClassName);
             return taskCompletionSource.Task;
         }
+
+        public void Hide()
+        {
+            SetEnabled(false);
+            RemoveFromClassList(StableClassName);
+            style.display = DisplayStyle.None;
+        }
+
+        public void ShowStable(bool enabled = true)
+        {
+            SetEnabled(enabled);
+            style.display = DisplayStyle.Flex;
+            AddToClassList(StableClassName);
+        }
+        
+        private void PostAnimateIn()
+        {
+            SetEnabled(true);
+            RemoveFromClassList(AnimatingInClassName);
+            AddToClassList(StableClassName);
+        }
+
+        
+        private void PostAnimateOut()
+        {
+            visible = false;
+            SetEnabled(false);
+            RemoveFromClassList(AnimatingOutClassName);
+            RemoveFromClassList(StableClassName);
+            RemoveFromHierarchy();
+        }
+
     }
 }

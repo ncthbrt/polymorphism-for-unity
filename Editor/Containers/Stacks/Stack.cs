@@ -1,10 +1,12 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
+using UnityEngine;
 using UnityEngine.UIElements;
 using static Polymorphism4Unity.Editor.Utils.FuncUtils;
 
@@ -29,10 +31,9 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
 
         private RegistrationSet? _registrationSet; 
         private readonly List<Action> _deregistrations = new();
-        private Task _maybeCurrentOperation = Task.CompletedTask;
-        private uint _count;
-        public uint Count => _count;
-
+        private Stack<StackFrame> _frameStack = new();
+        public uint Count => (uint) _frameStack.Count;
+        
         public Stack()
         {
             this.AddStackStyles();
@@ -52,7 +53,12 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         private void HandleAttachToPanelEvent(AttachToPanelEvent attachToPanelEvent)
         {
             Asserts.IsNull(_registrationSet);
-            _registrationSet = new RegistrationSet(this);   
+            _registrationSet = new RegistrationSet(this);
+            _frameStack = new Stack<StackFrame>(Children().OfType<StackFrame>().Reverse());
+            if (TryPeek() is {} stackFrame)
+            {
+                stackFrame.ShowStable();
+            }
             RegisterStackAction<PushFrame>(HandlePushFrameCommand);
             RegisterStackAction<PopFrame>(HandlePopFrameCommand);
         }
@@ -61,6 +67,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         {
             Asserts.IsNotNull(_registrationSet).Dispose();
             _registrationSet = null;
+            _frameStack.Clear();
         }
 
         protected void RegisterStackAction<TEvent>(Action<TEvent> callback, TrickleDown useTrickleDown = TrickleDown.NoTrickleDown) where TEvent : StackCommand<TEvent>, new()
@@ -75,104 +82,75 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         #region Event Handlers
         private void HandlePushFrameCommand(PushFrame cmd)
         {
-            _ = Push(cmd.Frame);
+            _ = PushAsync(cmd.Frame).SwallowAndLogExceptions();
         }
 
         private void HandlePopFrameCommand(PopFrame cmd)
         {
-            _ = TryPop();
+            _ = TryPopAsync().SwallowAndLogExceptions();
         }
 
         #endregion Event Handlers
         
         #region  Public Api
-        public Task Push(StackFrame frame)
+        public Task PushAsync(StackFrame frame)
         {
-            Task prevOperation = CurrentOperation;
-            async Task PushFrameInner()
-            {
-                StackFrame? prev = TryPeek();
-                Add(frame);
-                ++_count;
-                await frame.AnimateIn(IsEmpty, StackId);
-                if (prev != null)
+            StackFrame? prev = TryPeek();
+            prev?.SetEnabled(false);
+            Add(frame);
+            _frameStack.Push(frame);
+            Task animateIn = frame.AnimateIn(IsEmpty, StackId);
+            return animateIn
+                .SwallowAndLogExceptions()
+                .ContinueWith(_ =>
                 {
-                    prev.visible = false;    
-                }
-            }
-            Task newOperation = PushFrameInner();
-            CurrentOperation = Task.WhenAll(prevOperation, newOperation.SwallowCancellations());
-            return newOperation;
-        }
-
-        private Task<StackFrame?> TryPopFrame()
-        {
-            if (IsEmpty)
-            {
-                return Task.FromResult<StackFrame?>(null);
-            }
-            Task prevOperation = CurrentOperation;
-            async Task<StackFrame?> PopFrameInner()
-            {
-                AssertNotEmpty();
-                StackFrame current = Peek();
-                --_count;
-                if (await current.AnimateOut())
-                {
-                    current.RemoveFromHierarchy();    
-                }
-                else
-                {
-                    ++_count;
-                }
-                return current;
-            }
-            Task<StackFrame?> newOperation = PopFrameInner();
-            CurrentOperation =  Task.WhenAll(prevOperation, newOperation.SwallowCancellations());
-            return newOperation;
+                    prev?.Hide();
+                });
         }
         
         
-        public Task<StackFrame> Pop()
+        public Task<StackFrame> PopAsync()
         {
             AssertNotEmpty();
             // Nested function to ensure exceptions based on program invariants
             // are thrown on Task creation rather than when awaited
             // (see https://github.com/SergeyTeplyakov/ErrorProne.NET/blob/master/docs/Rules/EPC37.md for more info)
             async Task<StackFrame> PopFrameInner() =>
-                Asserts.IsNotNull(await TryPop());
+                Asserts.IsNotNull(await TryPopAsync());
             return PopFrameInner();
         }
 
-        public Task<StackFrame?> TryPop()
+        public Task<StackFrame?> TryPopAsync()
         {
             if (IsEmpty)
             {
-                return CurrentOperation.ContinueWith<StackFrame?>(_=> null);
+                return Task.FromResult<StackFrame?>(null);
             }
-            Task prevOperation = CurrentOperation;
-            async Task<StackFrame?> TryPopFrameInner()
-            {
-                await prevOperation;
-                return await TryPopFrame();
-            }
-            Task<StackFrame?> operation = TryPopFrameInner();
-            CurrentOperation = operation.SwallowCancellations();
-            return operation;
+            StackFrame current = _frameStack.Pop();
+            StackFrame? prev = TryPeek();
+            prev?.ShowStable(false);
+            return current
+                .AnimateOut()
+                .SwallowAndLogExceptions()
+                .ContinueWith<StackFrame?>(_ =>
+                {
+                    prev?.SetEnabled(true);
+                    return current;
+                });
         }
         
-
+        
         public StackFrame? TryPeek() =>
             IsEmpty ? null : Peek();
         
         public StackFrame Peek()
         {
             AssertNotEmpty();
-            return Asserts.IsType<StackFrame>(contentContainer[(int)(Count - 1u)]);
+            return _frameStack.Peek();
         }
-
+        
         public bool IsEmpty => Count is 0;
-        public Task CurrentOperation { get; private set; } = Task.CompletedTask;
+        
         #endregion Public Api
     }
 }
