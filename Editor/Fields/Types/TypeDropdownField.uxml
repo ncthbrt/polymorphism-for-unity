@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Fields/Types/TypeDropdownFieldStyle.uss?fileID=7433441132597879392&amp;guid=9fe790e0cc2aa4dc6a5ae375f4e17466&amp;type=3#TypeDropdownFieldStyle" />
+    <ui:VisualElement name="TypeDropdownField" focusable="true" tabindex="-1" class="unity-base-field unity-base-popup-field unity-popup-field">
+        <ui:Label text="Type" class="unity-base-field__label unity-base-popup-field__label unity-popup-field__label" />
+        <ui:VisualElement name="TypePopup" focusable="true" class="unity-base-field__input unity-base-popup-field__input unity-popup-field__input">
+            <ui:Image picking-mode="Ignore" name="ScriptIcon" class="poly-type-dropdown-field__script-icon unity-image unity-object-field__display-icon" />
+            <ui:TextElement name="PopupTextElement" text="PlaceholderClassName" picking-mode="Ignore" double-click-selects-word="false" display-tooltip-when-elided="false" triple-click-selects-line="false" emoji-fallback-support="true" class="unity-base-popup-field__text" />
+            <ui:VisualElement picking-mode="Ignore" name="PopupIcon" class="unity-base-popup-field__arrow" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,8 +1,0 @@
-<engine:UXML xmlns:engine="UnityEngine.UIElements"
-             noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
-    <Style src="./StackStyles.uss" />
-    <engine:Button name="BackButton" text="Current Frame"  class="poly-stackframe-header__root">
-        <engine:VisualElement name="BackIcon" picking-mode="Ignore" class="poly-stackframe-header__back-icon" />
-    </engine:Button>
-    <engine:VisualElement name="Content" class="poly-stackframe__content" />
-</engine:UXML>

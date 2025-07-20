@@ -13,12 +13,11 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         private const string AnimatingOutClassName = "poly-stackframe__animating-out";
         private const string StableClassName = "poly-stackframe__stable";
         private const string AnimatingInClassName = "poly-stackframe__animating-in";
-        public override VisualElement contentContainer { get; private set; }
-
+        public override VisualElement contentContainer { get; }
         private StackFrameHeader? _maybeHeader;
 
         private string _headerText = string.Empty;
-        private bool _navigateBackEnabled = false;
+        private bool _navigateBackEnabled;
         
 
         [UxmlAttribute]
@@ -35,7 +34,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
                         _maybeHeader = new StackFrameHeader();
                     }
                     _maybeHeader.HeaderText = notEmpty;
-                    hierarchy.Add(_maybeHeader);
+                    hierarchy.Insert(0, _maybeHeader);
                 }
                 else
                 {
@@ -80,6 +79,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             contentContainer = new VisualElement();
             contentContainer.name = nameof(contentContainer);
             contentContainer.AddToClassList("poly-stackframe__content");
+            hierarchy.Add(contentContainer);
         }
 
         public Task AnimateIn(bool enableBackButton, string stackId)

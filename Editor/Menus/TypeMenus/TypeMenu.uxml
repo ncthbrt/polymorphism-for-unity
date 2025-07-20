@@ -7,7 +7,7 @@
     <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Fields/IconEnumFieldStyle.uss?fileID=7433441132597879392&amp;guid=d41ec1bbabf074c758ee853d46e33301&amp;type=3#IconEnumFieldStyle" />
     <engine:VisualElement name="RootContainer" class="poly_typemenu__root">
         <editor:Toolbar name="SearchToolbar" class="poly_typemenu__searchtoolbar unity-toolbar">
-            <engine:EnumField value="Center" type="Polymorphism4Unity.Attributes.TypeMenuDisplayMode, Polymorphism4Unity.Editor" name="DisplayMode" class="poly_icon__enum_field" />
+            <engine:EnumField value="Center" type="Polymorphism4Unity.Editor.Menus.TypeMenus, Polymorphism4Unity.Editor" name="DisplayMode" class="poly_icon__enum_field" />
             <editor:ToolbarSearchField name="SearchField" style="flex-grow: 1;" />
         </editor:Toolbar>
         <engine:VisualElement name="ClippingFrame" usage-hints="None" class="poly_typemenu__clippingframe">

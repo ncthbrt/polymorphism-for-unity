@@ -54,7 +54,12 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         {
             Asserts.IsNull(_registrationSet);
             _registrationSet = new RegistrationSet(this);
-            _frameStack = new Stack<StackFrame>(Children().OfType<StackFrame>().Reverse());
+            StackFrame[] children = Children().OfType<StackFrame>().Reverse().ToArray();
+            children.Take(children.Length - 2).ForEach(x =>
+            {
+                x.Hide();
+            });
+            _frameStack = new Stack<StackFrame>(children);
             if (TryPeek() is {} stackFrame)
             {
                 stackFrame.ShowStable();

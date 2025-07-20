@@ -1,0 +1,7 @@
+:root {
+    
+}
+
+.poly-type-dropdown-field__script-icon {
+    background-image:  url('d_cs_Script_Icon.png');
+}
