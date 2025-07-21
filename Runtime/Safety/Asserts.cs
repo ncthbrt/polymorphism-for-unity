@@ -1,5 +1,7 @@
 #nullable enable
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 
@@ -37,7 +39,23 @@ namespace Polymorphism4Unity.Safety
         {
             return IsNotEqual(IsNotNull(a), string.Empty);
         }
+        
+        [AssertionMethod]
+        public static TCollection IsNotNullOrEmpty<T, TCollection>(TCollection? a)
+            where TCollection: ICollection<T>
+        {
+            IsNotEqual(IsNotNull(a).Count, 0);
+            return a!;
+        }
+        
+        [AssertionMethod]
+        public static T[] IsNotNullOrEmpty<T>(T[]? a)
+        {
+            IsNotEqual(IsNotNull(a).Length, 0);
+            return a!;
+        }
 
+        [AssertionMethod]
         public static string? IsNullOrEmpty(string? a)
         {
             if (a is null)

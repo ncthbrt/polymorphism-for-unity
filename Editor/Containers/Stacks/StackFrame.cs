@@ -140,7 +140,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             style.display = DisplayStyle.None;
         }
 
-        public void ShowStable(bool enabled = true)
+        public void Appear(bool enabled = true)
         {
             SetEnabled(enabled);
             style.display = DisplayStyle.Flex;

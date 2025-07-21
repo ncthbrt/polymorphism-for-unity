@@ -30,7 +30,6 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         public string StackId { get; set; } = string.Empty;
 
         private RegistrationSet? _registrationSet; 
-        private readonly List<Action> _deregistrations = new();
         private Stack<StackFrame> _frameStack = new();
         public uint Count => (uint) _frameStack.Count;
         
@@ -62,7 +61,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             _frameStack = new Stack<StackFrame>(children);
             if (TryPeek() is {} stackFrame)
             {
-                stackFrame.ShowStable();
+                stackFrame.Appear();
             }
             RegisterStackAction<PushFrame>(HandlePushFrameCommand);
             RegisterStackAction<PopFrame>(HandlePopFrameCommand);
@@ -81,23 +80,38 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             Asserts.IsNotNull(_registrationSet).RegisterCallback(eventCallback, useTrickleDown);
         }
 
-        protected bool IsThisStack(IStackCommand cmd) =>
+        private bool IsThisStack(IStackCommand cmd) =>
             cmd.StackId == StackId;
 
         #region Event Handlers
-        private void HandlePushFrameCommand(PushFrame cmd)
+
+        // ReSharper disable once AsyncVoidMethod
+        // SwallowAndLogExceptions catches all exceptions
+        private async void HandlePushFrameCommand(PushFrame cmd)
         {
-            _ = PushAsync(cmd.Frame).SwallowAndLogExceptions();
+            await PushAsync(cmd.Frame).SwallowAndLogExceptions();
         }
 
-        private void HandlePopFrameCommand(PopFrame cmd)
+        // ReSharper disable once AsyncVoidMethod
+        // SwallowAndLogExceptions catches all exceptions 
+        private async void HandlePopFrameCommand(PopFrame cmd)
         {
-            _ = TryPopAsync().SwallowAndLogExceptions();
+            await TryPopAsync().SwallowAndLogExceptions();
         }
 
         #endregion Event Handlers
         
         #region  Public Api
+
+        public void PushWithoutAnimate(StackFrame frame)
+        {
+            StackFrame? prev = TryPeek();
+            prev?.Hide();
+            frame.Appear();
+            _frameStack.Push(frame);
+            Add(frame);
+        }
+        
         public Task PushAsync(StackFrame frame)
         {
             StackFrame? prev = TryPeek();
@@ -133,7 +147,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             }
             StackFrame current = _frameStack.Pop();
             StackFrame? prev = TryPeek();
-            prev?.ShowStable(false);
+            prev?.Appear(false);
             return current
                 .AnimateOut()
                 .SwallowAndLogExceptions()
@@ -152,6 +166,12 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         {
             AssertNotEmpty();
             return _frameStack.Peek();
+        }
+
+        public void ClearAll()
+        {
+            _frameStack.Clear();
+            Clear();
         }
         
         public bool IsEmpty => Count is 0;

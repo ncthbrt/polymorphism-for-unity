@@ -1,0 +1,122 @@
+.poly-searchable-menu-tree__root {
+    width: 100%;
+    height: 100%;
+}
+
+.poly_typemenu__clippingframe {
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+.poly_typemenu__contentmover {
+    flex-grow: 0;
+    flex-shrink: 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    translate: 0 0;
+    transition-property: translate;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in-out-sine;
+}
+
+.poly_typemenu__menulist-container {
+    height: 100%;
+    width: 100%;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.poly_typemenu__menulist-template {
+    height: 100%;
+    width: 100%;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.poly_typemenu__menulist-list-template {
+    flex-grow: 1;
+    flex-shrink: 0;
+    width: 100%;    
+}
+
+.poly_typemenu__menulist-list {
+    flex-grow: 1;
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.poly_typemenu__menulist-item {
+    margin: 0;
+    border-radius: 0;
+    background-color: unset;
+    border-width: 0;
+    border-bottom-width: 1px;
+}
+
+.poly_typemenu__menulist-item__label {
+    -unity-text-align: middle-center;
+}
+
+.poly_typemenu__menulist-item__forwardicon {
+    width: var(--unity-metrics-toolbar_button-height);
+    height: var(--unity-metrics-toolbar_button-height);
+    background-image: var(--unity-icons-arrow_right);
+    flex-grow: 0;
+    align-self: flex-end;
+    align-content: center;
+    align-items: flex-end;
+    justify-content: flex-end;
+    flex-shrink: 0;    
+}
+
+.poly_typemenu__menulist-item-type {
+
+}
+
+.poly_typemenu__menulist-item-category {
+}
+
+.poly_typemenu__searchtoolbar {
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+
+.poly_typemenu__menulist-header-toolbar {
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+
+.poly_typemenu__menulist-header-button {
+    flex: 1;
+    flex-direction: row;
+    padding: 0;
+    justify-content: space-between;
+    border-width: 0;
+}
+
+.poly_typemenu__menulist-header-backicon {
+    background-image: var(--unity-icons-arrow_left);
+    height: var(--unity-metrics-toolbar_button-height);
+    width: var(--unity-metrics-toolbar_button-height);
+}
+
+.poly_typemenu__menulist-headertemplate {
+    height: var(--unity-metrics-toolbar_button-height);
+}
+
+.poly_typemenu__menulist-genericsettings {
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+.poly_typemenu__menulist-genericsettings-header {
+    -unity-text-align: upper-center;
+    padding: 8px;
+    -unity-font-style: italic;
+}

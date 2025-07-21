@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Polymorphism4Unity.Editor.Utils
@@ -30,6 +31,7 @@ namespace Polymorphism4Unity.Editor.Utils
                 return default;
             } 
         }
+    
         
         public static async Task<T?> SwallowAndLogExceptions<T>(this Task<T> task)
         {
