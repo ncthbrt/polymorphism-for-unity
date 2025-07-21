@@ -7,10 +7,12 @@ using System.Text.RegularExpressions;
 using Polymorphism4Unity.Editor.Containers.Stacks;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
+using Raffinert.FuzzySharp;
+using Raffinert.FuzzySharp.Extractor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using StackFrame = Polymorphism4Unity.Editor.Containers.Stacks.StackFrame;
+using FuzzSearch = Raffinert.FuzzySharp.Process;
 
 namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 {
@@ -54,9 +56,9 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
                 {
                     case ({ } thisNode, {} otherNode) when thisNode.GetType() == otherNode.GetType():
                         return currentCulture.CompareInfo.Compare(thisNode.text, otherNode.text);    
-                    case (LeafNode thisLeafNode, _):
+                    case (LeafNode, _):
                         return 1;
-                    case (_, LeafNode otherLeafNode):
+                    case (_, LeafNode):
                         return -1;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -67,7 +69,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         
         class ParentNode: Node
         {
-            public List<Node> ChildNodes { get; } = new();
+            public Dictionary<string, List<Node>> ChildNodes { get; set; } = new();
             
             public ParentNode(string name): base(name)
             {
@@ -84,11 +86,24 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             }
         }
         
+
+        class IndexItem
+        {
+            public string SearchTerm { get; }
+            public SearchableMenuTreeItem<T>? Item { get; }
+            
+            public IndexItem(string searchTerm, SearchableMenuTreeItem<T>? item = null)
+            {
+                SearchTerm = searchTerm;
+                Item = item;
+            }
+        }
+        
         
         private RegistrationSet? _registrationSet;
-        private readonly Stack _stack;
-        private readonly StackFrame _initialStackFrame;
-        
+        private readonly StackElement _stack;
+        private readonly StackFrameElement _initialStackFrame;
+        private IndexItem[]? _searchIndex = null;
         protected abstract IEnumerable<SearchableMenuTreeItem<T>> Items { get; }
         
         [UxmlAttribute]
@@ -109,9 +124,8 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         {
             this.AddSearchableMenuTreeStyles();
             AddToClassList("poly-searchable-menu-tree__root");
-            _stack = new Stack();
-            _initialStackFrame = new StackFrame();
-            _stack.Add(_initialStackFrame);
+            _stack = new StackElement();
+            _initialStackFrame = new StackFrameElement();
             Add(_stack);
             RegisterCallback<AttachToPanelEvent>(HandleAttachToPanelEvent);
             RegisterCallback<DetachFromPanelEvent>(HandleDetachFromPanelEvent);
@@ -122,8 +136,6 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             Asserts.IsNull(_registrationSet);
             _registrationSet = new RegistrationSet(this);
             RefreshItems();
-            List<Node> treeRoots = ConstructTree(Items);
-            _initialStackFrame.AddRange(treeRoots);
         }
         
 
@@ -134,20 +146,47 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             _stack.ClearAll();
         }
 
-        protected virtual void RefreshItems()
+        private static IndexItem[] ConstructIndex(IEnumerable<SearchableMenuTreeItem<T>> items)
         {
+            return items.SelectMany(item => 
+            {
+                return item.SearchTerms.Select(term =>  new IndexItem(term, item));
+            }).ToArray();
         }
 
-        private static List<Node> CollapseParentNodesWithSingleItems(List<Node> result)
+        private static ExtractedResult<IndexItem>[] SearchIndex(IndexItem[] index, string searchTerm)
         {
+            IndexItem searchIndexItem = new IndexItem(searchTerm);
+            IEnumerable<ExtractedResult<IndexItem>> searchResults = FuzzSearch.ExtractTop(
+                searchIndexItem, 
+                index, 
+                item => item.SearchTerm,
+                limit: int.MaxValue,
+                cutoff: 75 // This is a little arbitrary tbqh
+            );
+            return searchResults.ToArray();
+        }
 
-            return result;
+        protected void RefreshItems()
+        {
+            SearchableMenuTreeItem<T>[] items = Items.ToArray();
+            Node[] treeRoots = ConstructTree(items);
+            _searchIndex = ConstructIndex(items);
+            _stack.ClearAll();
+            _initialStackFrame.Clear();
+            _initialStackFrame.AddRange(treeRoots);
+            _stack.Add(_initialStackFrame);
+            _stack.PushWithoutAnimate(_initialStackFrame);
+        }
+
+        private static void CreateShortcuts(Node[] nodes)
+        {
+            // TODO: this is a little complex and will require changes to the Stack element
         }
         
-        private static List<Node> ConstructTree(IEnumerable<SearchableMenuTreeItem<T>> items)
+        private static Node[] ConstructTree(IEnumerable<SearchableMenuTreeItem<T>> items)
         {
-            List<Node> result = new();
-            Dictionary<string, Node> intermediate = new();
+            ParentNode intermediate = new(string.Empty);
             foreach (SearchableMenuTreeItem<T> item in items)
             {
                 Match match = SearchableMenuTreesConstants.PathRegex.Match(item.Path);
@@ -156,29 +195,39 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
                     Debug.LogError($"Invalid Path String {item.Path}");
                     continue;
                 }
-
                 Group matchGroup = match.Groups["part"];
                 string[] parts = matchGroup.Captures.Select(x => x.Value).ToArray();
                 parts = Asserts.IsNotNullOrEmpty(parts);
-                if (parts.Length == 1)
+                ParentNode current = intermediate;
+                for (int i = 0; i < parts[i].Length - 1; ++i)
                 {
-                    result.Add(new LeafNode(parts[0],item.Value));
-                    continue;
+                    string key = parts[i];
+                    if (!current.ChildNodes.TryGetValue(key, out List<Node> nodes))
+                    {
+                        nodes = new List<Node>();
+                        current.ChildNodes.Add(key, nodes);
+                    }
+
+                    if (nodes.FirstOrDefault() is not ParentNode maybeParentNode)
+                    {
+                        maybeParentNode = new ParentNode(key);
+                        nodes.Insert(0, maybeParentNode);
+                    }
+                    current = maybeParentNode;
                 }
-                string head = parts[0];
-                if (!intermediate.TryGetValue(head, out Node? prevNode))
+                string leafName = parts[^1];
+                LeafNode leafNode = new(leafName, item.Value);
+                if (!current.ChildNodes.TryGetValue(leafName, out List<Node> finalNodes))
                 {
-                    intermediate.Add();
+                    finalNodes = new List<Node>();
+                    current.ChildNodes.Add(leafName, finalNodes);
                 }
-                ParentNode parent = new ParentNode(head);
-                for (int i = 1; i < parts.Length; ++i)
-                {
-                    string part = parts[i];
-                    
-                }
+                finalNodes.Add(leafNode);
             }
-            result.Sort();
-            return  CollapseParentNodesWithSingleItems(result);
+            Node[] results = intermediate.ChildNodes.Values.Flatten().ToArray();
+            Array.Sort(results);
+            CreateShortcuts(results);
+            return results;
         }
 
         protected virtual Toolbar CreateSearchToolbar()
@@ -187,7 +236,6 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             {
                 name = "SearchMenu"
             };
-            
             return toolbar;
         }   
     }

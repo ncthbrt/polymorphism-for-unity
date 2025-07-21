@@ -18,10 +18,10 @@ namespace Polymorphism4Unity.Editor.DrawerResolution
     [PublicAPI]
     internal class FieldDrawerResolutionData : IEquatable<FieldDrawerResolutionData>
     {
-        private static readonly Cache<Type, Type[]> _concreteSubtypes;
-        private static readonly Cache<FieldInfo, PropertyAttribute[]> _propertyAttributes;
-        private static readonly Cache<Type, IReadOnlyList<Type>> _interfaces;
-        private static readonly Cache<Type, IReadOnlyList<PropertyDrawerData>> _propertyDrawers;
+        private static readonly Cache<Type, Type[]> ConcreteSubtypesCache;
+        private static readonly Cache<FieldInfo, PropertyAttribute[]> PropertyAttributesCache;
+        private static readonly Cache<Type, IReadOnlyList<Type>> InterfacesCache;
+        private static readonly Cache<Type, IReadOnlyList<PropertyDrawerData>> PropertyDrawerDataCache;
 
         private static IReadOnlyList<PropertyDrawerData> ResolvePropertyDrawerData(Type subtype)
         {
@@ -39,7 +39,7 @@ namespace Polymorphism4Unity.Editor.DrawerResolution
                 Type currentGenericType = subtype.GetGenericTypeDefinition();
                 TryAdd(currentGenericType);
             }
-            IReadOnlyList<Type> subInterfaces = _interfaces[subtype];
+            IReadOnlyList<Type> subInterfaces = InterfacesCache[subtype];
             foreach (Type sub in subInterfaces)
             {
                 TryAdd(sub);
@@ -51,7 +51,7 @@ namespace Polymorphism4Unity.Editor.DrawerResolution
             }
             if (subtype.BaseType is not null)
             {
-                IReadOnlyList<PropertyDrawerData> dataItems = _propertyDrawers[subtype.BaseType];
+                IReadOnlyList<PropertyDrawerData> dataItems = PropertyDrawerDataCache[subtype.BaseType];
                 foreach (PropertyDrawerData data in dataItems)
                 {
                     if (data.UseForChildren)
@@ -69,17 +69,17 @@ namespace Polymorphism4Unity.Editor.DrawerResolution
 
         static FieldDrawerResolutionData()
         {
-            _concreteSubtypes = new Cache<Type, Type[]>(
+            ConcreteSubtypesCache = new Cache<Type, Type[]>(
                 type => TypeCache.GetTypesDerivedFrom(type).Where(And<Type>(T.IsConcreteConstructedType, T.HasDefaultPublicConstructor)).ToArray()
             );
-            _propertyAttributes = new Cache<FieldInfo, PropertyAttribute[]>(
+            PropertyAttributesCache = new Cache<FieldInfo, PropertyAttribute[]>(
                 fieldInfo => fieldInfo
                     .GetCustomAttributes<PropertyAttribute>()
                     .OrderBy(x => x.order)
                     .ThenBy(x => x.GetType().AssemblyQualifiedName)
                     .ToArray()
             );
-            _interfaces = new(
+            InterfacesCache = new(
                 type =>
                 {
                     Asserts.IsFalse(type.IsInterface);
@@ -109,7 +109,7 @@ namespace Polymorphism4Unity.Editor.DrawerResolution
                     return interfaces;
                 }
             );
-            _propertyDrawers = new Cache<Type, IReadOnlyList<PropertyDrawerData>>(ResolvePropertyDrawerData);
+            PropertyDrawerDataCache = new Cache<Type, IReadOnlyList<PropertyDrawerData>>(ResolvePropertyDrawerData);
         }
         
         public string PropertyPath { get; }
@@ -124,7 +124,7 @@ namespace Polymorphism4Unity.Editor.DrawerResolution
             Type = type;
             PropertyPath = propertyPath;
             IsRootField = isPropertyRoot;
-            AllSubtypes = new Lazy<IReadOnlyList<Type>>(() => _concreteSubtypes[Type]);
+            AllSubtypes = new Lazy<IReadOnlyList<Type>>(() => ConcreteSubtypesCache[Type]);
             DecoratorDrawerData? MaybeGetAttributeDecoratorDrawerData(PropertyAttribute attribute)
             {
 #if UNITY_6000_0_OR_NEWER
@@ -153,15 +153,15 @@ namespace Polymorphism4Unity.Editor.DrawerResolution
             PropertyDrawers = new Cache<Type, IReadOnlyList<PropertyDrawerData>>(subtype =>
             {
                 Asserts.IsType(subtype, Type);
-                return _propertyDrawers[subtype];
+                return PropertyDrawerDataCache[subtype];
             });
         }
 
         public static FieldDrawerResolutionData CreateForFieldRoot(SerializedProperty property, FieldInfo fieldInfo) =>
-            new(property.propertyPath, _propertyAttributes[fieldInfo], fieldInfo.FieldType, true);
+            new(property.propertyPath, PropertyAttributesCache[fieldInfo], fieldInfo.FieldType, true);
 
         public static FieldDrawerResolutionData CreateForMember(SerializedProperty property, FieldInfo fieldInfo, Type elementType) =>
-            new(property.propertyPath, _propertyAttributes[fieldInfo], elementType, false);
+            new(property.propertyPath, PropertyAttributesCache[fieldInfo], elementType, false);
 
         public bool Equals(FieldDrawerResolutionData? other) =>
             other is not null

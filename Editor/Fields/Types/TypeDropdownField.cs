@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 
 namespace Polymorphism4Unity.Editor.Fields.Types
 {

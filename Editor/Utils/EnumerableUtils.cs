@@ -101,5 +101,15 @@ namespace Polymorphism4Unity.Editor.Utils
         
         public static TSource First<TSource, TType>(this IEnumerable<TSource> source) =>
             source.First(x => x is TType);
+
+        public static IEnumerable<T> Flatten<T, TInner>(this IEnumerable<TInner> enumerable) where TInner : IEnumerable<T>
+        {
+            return enumerable.SelectMany(x => x);
+        }
+        
+        public static IEnumerable<T> Flatten<T>(this IEnumerable<List<T>> enumerable)
+        {
+            return enumerable.SelectMany(x => x);
+        }
     }
 }

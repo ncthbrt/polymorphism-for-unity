@@ -6,14 +6,13 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
-using UnityEngine;
 using UnityEngine.UIElements;
 using static Polymorphism4Unity.Editor.Utils.FuncUtils;
 
 namespace Polymorphism4Unity.Editor.Containers.Stacks
 {
-    [UxmlElement(nameof(Stack)), PublicAPI]
-    public partial class Stack : VisualElement
+    [UxmlElement(nameof(StackElement)), PublicAPI]
+    public partial class StackElement : VisualElement
     {
         private const string StackEmptyErrorMessage = "Stack is empty";
         protected static Exception StackEmptyException =>
@@ -30,10 +29,10 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         public string StackId { get; set; } = string.Empty;
 
         private RegistrationSet? _registrationSet; 
-        private Stack<StackFrame> _frameStack = new();
+        private Stack<StackFrameElement> _frameStack = new();
         public uint Count => (uint) _frameStack.Count;
         
-        public Stack()
+        public StackElement()
         {
             this.AddStackStyles();
             AddToClassList("poly-stack__root");
@@ -53,12 +52,12 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         {
             Asserts.IsNull(_registrationSet);
             _registrationSet = new RegistrationSet(this);
-            StackFrame[] children = Children().OfType<StackFrame>().Reverse().ToArray();
+            StackFrameElement[] children = Children().OfType<StackFrameElement>().Reverse().ToArray();
             children.Take(children.Length - 2).ForEach(x =>
             {
                 x.Hide();
             });
-            _frameStack = new Stack<StackFrame>(children);
+            _frameStack = new Stack<StackFrameElement>(children);
             if (TryPeek() is {} stackFrame)
             {
                 stackFrame.Appear();
@@ -103,18 +102,18 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         
         #region  Public Api
 
-        public void PushWithoutAnimate(StackFrame frame)
+        public void PushWithoutAnimate(StackFrameElement frame)
         {
-            StackFrame? prev = TryPeek();
+            StackFrameElement? prev = TryPeek();
             prev?.Hide();
             frame.Appear();
             _frameStack.Push(frame);
             Add(frame);
         }
         
-        public Task PushAsync(StackFrame frame)
+        public Task PushAsync(StackFrameElement frame)
         {
-            StackFrame? prev = TryPeek();
+            StackFrameElement? prev = TryPeek();
             prev?.SetEnabled(false);
             Add(frame);
             _frameStack.Push(frame);
@@ -128,30 +127,30 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         }
         
         
-        public Task<StackFrame> PopAsync()
+        public Task<StackFrameElement> PopAsync()
         {
             AssertNotEmpty();
             // Nested function to ensure exceptions based on program invariants
             // are thrown on Task creation rather than when awaited
             // (see https://github.com/SergeyTeplyakov/ErrorProne.NET/blob/master/docs/Rules/EPC37.md for more info)
-            async Task<StackFrame> PopFrameInner() =>
+            async Task<StackFrameElement> PopFrameInner() =>
                 Asserts.IsNotNull(await TryPopAsync());
             return PopFrameInner();
         }
 
-        public Task<StackFrame?> TryPopAsync()
+        public Task<StackFrameElement?> TryPopAsync()
         {
             if (IsEmpty)
             {
-                return Task.FromResult<StackFrame?>(null);
+                return Task.FromResult<StackFrameElement?>(null);
             }
-            StackFrame current = _frameStack.Pop();
-            StackFrame? prev = TryPeek();
+            StackFrameElement current = _frameStack.Pop();
+            StackFrameElement? prev = TryPeek();
             prev?.Appear(false);
             return current
                 .AnimateOut()
                 .SwallowAndLogExceptions()
-                .ContinueWith<StackFrame?>(_ =>
+                .ContinueWith<StackFrameElement?>(_ =>
                 {
                     prev?.SetEnabled(true);
                     return current;
@@ -159,10 +158,10 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         }
         
         
-        public StackFrame? TryPeek() =>
+        public StackFrameElement? TryPeek() =>
             IsEmpty ? null : Peek();
         
-        public StackFrame Peek()
+        public StackFrameElement Peek()
         {
             AssertNotEmpty();
             return _frameStack.Peek();

@@ -21,7 +21,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
     [PublicAPI]
     public class PopFrame : StackCommand<PopFrame>
     {
-        private static readonly string _cmdName = nameof(PopFrame);
+        private static readonly string CmdName = nameof(PopFrame);
         private string _stackId = string.Empty;
         public override string StackId =>
             Asserts.IsNotNullOrEmpty(_stackId);
@@ -29,7 +29,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         public static new PopFrame GetPooled(string stackId)
         {
             PopFrame command = GetPooled();
-            command.commandName = _cmdName;
+            command.commandName = CmdName;
             command._stackId = Asserts.IsNotNullOrEmpty(stackId);
             return command;
         }
@@ -38,11 +38,11 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
     [PublicAPI]
     public class PushFrame : StackCommand<PushFrame>
     {
-        private static readonly string _cmdName = nameof(PushFrame);
+        private static readonly string CmdName = nameof(PushFrame);
         private string? _stackId;
         public override string StackId =>
             Asserts.IsNotNullOrEmpty(_stackId);
-        public StackFrame Frame { get; private set; } = new();
+        public StackFrameElement Frame { get; private set; } = new();
 
         public static PushFrame GetPooled(string stackId, StackFrameHeader? header, params VisualElement[] frameContents) =>
             GetPooled(stackId, header, (IEnumerable<VisualElement>) frameContents);
@@ -50,9 +50,9 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         public static PushFrame GetPooled(string stackId, StackFrameHeader? header, IEnumerable<VisualElement> frameContents)
         {
             PushFrame command = GetPooled();
-            command.commandName = _cmdName;
+            command.commandName = CmdName;
             command._stackId = Asserts.IsNotNullOrEmpty(stackId);
-            command.Frame = new StackFrame();
+            command.Frame = new StackFrameElement();
             if (header is not null)
             {
                 command.Frame.Header = header;

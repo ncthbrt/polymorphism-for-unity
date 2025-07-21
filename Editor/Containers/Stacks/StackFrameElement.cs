@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 
 namespace Polymorphism4Unity.Editor.Containers.Stacks
 {
-    [UxmlElement(nameof(StackFrame))]
-    public sealed partial class StackFrame : VisualElement
+    [UxmlElement(nameof(StackFrameElement))]
+    public sealed partial class StackFrameElement : VisualElement
     {
         
         private const string AnimatingOutClassName = "poly-stackframe__animating-out";
@@ -72,7 +72,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             }
         }
 
-        public StackFrame()
+        public StackFrameElement()
         {
             this.AddStackStyles();
             AddToClassList("poly-stackframe__root");
@@ -146,6 +146,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             style.display = DisplayStyle.Flex;
             AddToClassList(StableClassName);
         }
+
         
         private void PostAnimateIn()
         {
@@ -163,6 +164,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             RemoveFromClassList(StableClassName);
             RemoveFromHierarchy();
         }
+        
 
     }
 }

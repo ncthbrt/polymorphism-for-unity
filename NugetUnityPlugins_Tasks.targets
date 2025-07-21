@@ -6,22 +6,13 @@
         </ItemGroup>
         <Delete Files="@(NugetFiles)" />
     </Target>
-    <Target Name="CopyDlls" AfterTargets="Restore">
-        <ItemGroup>
-            <NugetDlls Include="$(RestorePackagesPath)\*\*\lib\$(TargetFramework)\*.dll" />
-        </ItemGroup>
-        <Copy SourceFiles="@(NugetDlls)"
-            SkipUnchangedFiles="true"
-            DestinationFolder="$(UnityPluginOutputPath)" />
-    </Target>
     <Target Name="GenerateMetaFiles" Inputs="@(PackageReference)"
         Outputs="$(UnityPluginOutputPath)%(Identity.Include).dll.meta"
-        AfterTargets="CopyDlls">
+        AfterTargets="Restore">
         <PropertyGroup>
-            <DllMetaTemplate>
-fileFormatVersion: 2
-guid: %(PackageReference.UnityGuid)            
-            </DllMetaTemplate>
+            <DllMetaTemplate><![CDATA[fileFormatVersion: 2
+guid: %(PackageReference.UnityGuid)
+]]></DllMetaTemplate>
         </PropertyGroup>
         <ItemGroup>
             <DllMetaFileLine Include="$(DllMetaTemplate.Split(`%0a`))" />
@@ -31,5 +22,13 @@ guid: %(PackageReference.UnityGuid)
             Overwrite="true"
             WriteOnlyWhenDifferent="true"
             Lines="@(DllMetaFileLine)" />
+    </Target>
+    <Target Name="CopyDlls" AfterTargets="Build">
+        <ItemGroup>
+            <NugetDlls Include="$(OutDir)\*.dll" />
+        </ItemGroup>
+        <Copy SourceFiles="@(NugetDlls)"
+            SkipUnchangedFiles="true"
+            DestinationFolder="$(UnityPluginOutputPath)" />
     </Target>
 </Project>
