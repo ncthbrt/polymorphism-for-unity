@@ -1,8 +1,8 @@
 <engine:UXML xmlns:engine="UnityEngine.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <Style src="project://database/Packages/com.ncthbrt.polymorphism-for-unity/Editor/Containers/Stacks/StackStyles.uss?fileID=7433441132597879392&amp;guid=8719b48db366a4a518f6ca126f8f5ea3&amp;type=3#StackStyles" />
-    <Polymorphism4Unity.Editor.Containers.Stacks.StackElement stack-id="FrogStack" name="Stack">
+    <Polymorphism4Unity.Editor.Containers.Stacks.StackView stack-id="FrogStack" name="Stack">
         <Polymorphism4Unity.Editor.Containers.Stacks.StackFrameElement header-text="FrogText" navigate-back-enabled="true">
             <engine:RadioButtonGroup label="Radio Button Group" />
         </Polymorphism4Unity.Editor.Containers.Stacks.StackFrameElement>
-    </Polymorphism4Unity.Editor.Containers.Stacks.StackElement>
+    </Polymorphism4Unity.Editor.Containers.Stacks.StackView>
 </engine:UXML>

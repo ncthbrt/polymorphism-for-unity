@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using JetBrains.Annotations;
 using UnityEngine.UIElements;
 
@@ -33,6 +34,9 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             }
         }
         
+
+        public Action OnNavigateBack { get; set; } = () => { };
+        
         [UxmlAttribute, UsedImplicitly]
         public string HeaderText
         {
@@ -46,11 +50,9 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
                 }
             }
         }
-
-        public string? StackId { get; set; }
-
+        
         private TextElement? _contents;
-
+        
 
         public StackFrameHeader()
         {
@@ -69,9 +71,9 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
 
         private TextElement MakeButton()
         {
-            Button button = new(HandleClicked)
+            Button button = new(OnNavigateBack)
             {
-                text = _headerText
+                text = _headerText,
             };
             VisualElement backIcon = new()
             {
@@ -82,14 +84,6 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             backIcon.AddToClassList("poly-stackframe-header__back-icon");
             button.Add(backIcon);
             return button;
-        }
-
-        private void HandleClicked()
-        {
-            if (StackId is { Length: > 0  } stackId)
-            {
-                SendEvent(PopFrame.GetPooled(stackId));    
-            }
         }
     }
 }

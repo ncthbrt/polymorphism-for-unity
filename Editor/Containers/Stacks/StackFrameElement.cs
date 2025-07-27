@@ -1,7 +1,9 @@
 #nullable enable
+using System;
 using System.Threading.Tasks;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Polymorphism4Unity.Editor.Containers.Stacks
@@ -9,7 +11,6 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
     [UxmlElement(nameof(StackFrameElement))]
     public sealed partial class StackFrameElement : VisualElement
     {
-        
         private const string AnimatingOutClassName = "poly-stackframe__animating-out";
         private const string StableClassName = "poly-stackframe__stable";
         private const string AnimatingInClassName = "poly-stackframe__animating-in";
@@ -29,10 +30,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
                 _headerText = value;
                 if (_headerText is { Length: > 0 } notEmpty)
                 {
-                    if (_maybeHeader is null)
-                    {
-                        _maybeHeader = new StackFrameHeader();
-                    }
+                    _maybeHeader ??= new StackFrameHeader();
                     _maybeHeader.HeaderText = notEmpty;
                     hierarchy.Insert(0, _maybeHeader);
                 }
@@ -57,21 +55,9 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
                 }
             }
         }
-
-        public StackFrameHeader Header
-        {
-            get => Asserts.IsNotNull(_maybeHeader);
-            set
-            {
-                _maybeHeader?.RemoveFromHierarchy();
-                _maybeHeader = value;
-                if (_maybeHeader is not null)
-                {
-                    hierarchy.Insert(0, _maybeHeader);
-                }
-            }
-        }
-
+        
+        public Action OnNavigateBack { get; set; } = () => { };
+        
         public StackFrameElement()
         {
             this.AddStackStyles();
@@ -80,9 +66,55 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             contentContainer.name = nameof(contentContainer);
             contentContainer.AddToClassList("poly-stackframe__content");
             hierarchy.Add(contentContainer);
+            RegisterCallback<AttachToPanelEvent>(HandleAttachToPanel);
+            RegisterCallback<DetachFromPanelEvent>(HandleDetachFromPanel);
         }
 
-        public Task AnimateIn(bool enableBackButton, string stackId)
+        private void HandleAttachToPanel(AttachToPanelEvent attachToPanelEvent)
+        {
+            if (_maybeHeader is null)
+            {
+                return;
+            }
+            _maybeHeader.OnNavigateBack += HandleHeaderClicked;
+
+            _maybeHeader?.RegisterCallback<ClickEvent>(HandleHeaderClicked);   
+        }
+        
+        private void HandleDetachFromPanel(DetachFromPanelEvent detachFromPanelEvent)
+        {
+            if (_maybeHeader is null)
+            {
+                return;
+            }
+            
+            _maybeHeader.OnNavigateBack -= HandleHeaderClicked;
+        }
+
+        private void HandleHeaderClicked()
+        {
+            if (MaybeStack is null)
+            {
+                return;
+            }
+            
+            try
+            {
+                await MaybeStack.TryPopAsync();
+            }
+            catch(Exception e)
+            {
+                Debug.LogError("Failed to navigate back");
+                Debug.LogException(e);
+            }
+        }
+
+        private void RaiseNavigateBack()
+        {
+            SendEvent();
+        }
+
+        public Task AnimateIn(bool enableBackButton)
         {
             visible = true;
             SetEnabled(false);
@@ -91,7 +123,6 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             if (_maybeHeader is not null)
             {
                 _maybeHeader.NavigateBackEnabled = enableBackButton;
-                _maybeHeader.StackId = stackId;
             }
 
             void HandleTransitionEnd(TransitionEndEvent _)

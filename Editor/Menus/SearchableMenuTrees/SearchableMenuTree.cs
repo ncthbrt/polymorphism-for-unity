@@ -31,7 +31,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 #nullable enable
     }
     
-    public abstract class SearchableMenuTree<T>: VisualElement
+    public abstract class SearchableMenuTree<T>: VisualElement, INotifyValueChanged<T?>
         where T: class
     {
         abstract class Node: TextElement, IComparable<Node>
@@ -76,13 +76,25 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             }
         }
 
-        class LeafNode: Node
+        class LeafNode: Node, IHasReadOnlyValue<T>
         {
-            public T Value { get; }
+            public T Value { get; set; }
 
             public LeafNode(string name, T value): base(name)
             {
                 Value = value;
+                RegisterCallback<AttachToPanelEvent>(HandleAttachToPanel);
+                RegisterCallback<DetachFromPanelEvent>(HandleDetachFromPanel);
+            }
+
+            void HandleAttachToPanel(AttachToPanelEvent _)
+            {
+                
+            }
+            
+            void HandleDetachFromPanel(DetachFromPanelEvent _)
+            {
+                
             }
         }
         
@@ -101,18 +113,32 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         
         
         private RegistrationSet? _registrationSet;
-        private readonly StackElement _stack;
+        private readonly StackView _stack;
         private readonly StackFrameElement _initialStackFrame;
         private IndexItem[]? _searchIndex = null;
         protected abstract IEnumerable<SearchableMenuTreeItem<T>> Items { get; }
+        private T? _maybeValue;
         
-        [UxmlAttribute]
-        public string StackId
+        public T? value
         {
-            get => _stack.StackId;
-            set => _stack.StackId = value;
+            get => _maybeValue;
+            set
+            {
+                if (EqualsCurrentValue(value))
+                    return;
+                T? previousValue = _maybeValue;
+                _maybeValue = value;
+                if (panel == null)
+                {
+                    return;
+                }
+                using ChangeEvent<T?> pooled = ChangeEvent<T?>.GetPooled(previousValue, _maybeValue);
+                pooled.target = this;
+                SendEvent(pooled);
+            }
         }
-
+        
+        
         [UxmlAttribute]
         public string HeaderText
         {
@@ -124,11 +150,12 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         {
             this.AddSearchableMenuTreeStyles();
             AddToClassList("poly-searchable-menu-tree__root");
-            _stack = new StackElement();
+            _stack = new StackView();
             _initialStackFrame = new StackFrameElement();
             Add(_stack);
             RegisterCallback<AttachToPanelEvent>(HandleAttachToPanelEvent);
             RegisterCallback<DetachFromPanelEvent>(HandleDetachFromPanelEvent);
+            SetValueWithoutNotify(null);
         }
 
         protected virtual void HandleAttachToPanelEvent(AttachToPanelEvent _)
@@ -179,9 +206,15 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             _stack.PushWithoutAnimate(_initialStackFrame);
         }
 
+        private bool EqualsCurrentValue(T? newValue)
+        {
+            return EqualityComparer<T?>.Default.Equals(_maybeValue, newValue);
+        }
+
         private static void CreateShortcuts(Node[] nodes)
         {
             // TODO: this is a little complex and will require changes to the Stack element
+            // Lets get things working solidly first 
         }
         
         private static Node[] ConstructTree(IEnumerable<SearchableMenuTreeItem<T>> items)
@@ -237,6 +270,12 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
                 name = "SearchMenu"
             };
             return toolbar;
-        }   
+        }
+
+        public void SetValueWithoutNotify(T? newValue)
+        {
+            _maybeValue = newValue;
+        }
+
     }
 }

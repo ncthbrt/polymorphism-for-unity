@@ -7,12 +7,11 @@ using JetBrains.Annotations;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using UnityEngine.UIElements;
-using static Polymorphism4Unity.Editor.Utils.FuncUtils;
 
 namespace Polymorphism4Unity.Editor.Containers.Stacks
 {
-    [UxmlElement(nameof(StackElement)), PublicAPI]
-    public partial class StackElement : VisualElement
+    [UxmlElement(nameof(StackView)), PublicAPI]
+    public partial class StackView : VisualElement
     {
         private const string StackEmptyErrorMessage = "Stack is empty";
         protected static Exception StackEmptyException =>
@@ -23,16 +22,12 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         {
             throw StackEmptyException;
         }
+        
 
-
-        [UxmlAttribute]
-        public string StackId { get; set; } = string.Empty;
-
-        private RegistrationSet? _registrationSet; 
         private Stack<StackFrameElement> _frameStack = new();
         public uint Count => (uint) _frameStack.Count;
         
-        public StackElement()
+        public StackView()
         {
             this.AddStackStyles();
             AddToClassList("poly-stack__root");
@@ -50,8 +45,6 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         
         private void HandleAttachToPanelEvent(AttachToPanelEvent attachToPanelEvent)
         {
-            Asserts.IsNull(_registrationSet);
-            _registrationSet = new RegistrationSet(this);
             StackFrameElement[] children = Children().OfType<StackFrameElement>().Reverse().ToArray();
             children.Take(children.Length - 2).ForEach(x =>
             {
@@ -62,43 +55,13 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             {
                 stackFrame.Appear();
             }
-            RegisterStackAction<PushFrame>(HandlePushFrameCommand);
-            RegisterStackAction<PopFrame>(HandlePopFrameCommand);
         }
 
         private void HandleDetachFromPanelEvent(DetachFromPanelEvent _)
         {
-            Asserts.IsNotNull(_registrationSet).Dispose();
-            _registrationSet = null;
             _frameStack.Clear();
         }
 
-        protected void RegisterStackAction<TEvent>(Action<TEvent> callback, TrickleDown useTrickleDown = TrickleDown.NoTrickleDown) where TEvent : StackCommand<TEvent>, new()
-        {
-            EventCallback<TEvent> eventCallback = Iff(IsThisStack, callback).ToEventCallback();
-            Asserts.IsNotNull(_registrationSet).RegisterCallback(eventCallback, useTrickleDown);
-        }
-
-        private bool IsThisStack(IStackCommand cmd) =>
-            cmd.StackId == StackId;
-
-        #region Event Handlers
-
-        // ReSharper disable once AsyncVoidMethod
-        // SwallowAndLogExceptions catches all exceptions
-        private async void HandlePushFrameCommand(PushFrame cmd)
-        {
-            await PushAsync(cmd.Frame).SwallowAndLogExceptions();
-        }
-
-        // ReSharper disable once AsyncVoidMethod
-        // SwallowAndLogExceptions catches all exceptions 
-        private async void HandlePopFrameCommand(PopFrame cmd)
-        {
-            await TryPopAsync().SwallowAndLogExceptions();
-        }
-
-        #endregion Event Handlers
         
         #region  Public Api
 
@@ -117,7 +80,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             prev?.SetEnabled(false);
             Add(frame);
             _frameStack.Push(frame);
-            Task animateIn = frame.AnimateIn(IsEmpty, StackId);
+            Task animateIn = frame.AnimateIn(IsEmpty);
             return animateIn
                 .SwallowAndLogExceptions()
                 .ContinueWith(_ =>
