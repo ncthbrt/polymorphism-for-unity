@@ -1,13 +1,18 @@
 #nullable enable
 using System;
 using JetBrains.Annotations;
+using Polymorphism4Unity.Editor.Commands;
+using Polymorphism4Unity.Editor.Manipulators;
+using Polymorphism4Unity.Editor.Styling;
+using Polymorphism4Unity.Safety;
+using UnityEditor;
+using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Polymorphism4Unity.Editor.Containers.Stacks
 {
-    
-    [UxmlElement]
-    public partial class StackFrameHeader : VisualElement
+    public class StackFrameHeader : VisualElement
     {
         private string _headerText = "Placeholder Text";
         private bool _navigateBackEnabled;
@@ -25,6 +30,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
                     return;
                 }
                 _contents?.RemoveFromHierarchy();
+                _contents?.RemoveManipulator(_backButtonNavigationManipulator);
                 _contents =
                     _navigateBackEnabled
                         ? MakeButton()
@@ -34,8 +40,6 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             }
         }
         
-
-        public Action OnNavigateBack { get; set; } = () => { };
         
         [UxmlAttribute, UsedImplicitly]
         public string HeaderText
@@ -52,26 +56,60 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         }
         
         private TextElement? _contents;
-        
-
+        private readonly BackButtonNavigationManipulator _backButtonNavigationManipulator;
+        public Action<INavigationCommand, EventBase> NavigationHandler { get; set; } = (_, _) => { };
         public StackFrameHeader()
         {
-            this.AddStackStyles();
+            // NavigationHandler = navigationHandler;
+            _backButtonNavigationManipulator = new BackButtonNavigationManipulator(HandleNavigationEvent);
         }
 
+        private void HandleNavigationEvent(INavigationCommand navigateBackCommand, EventBase baseEvent)
+        {
+            Asserts.IsNotNull(NavigationHandler);
+            try
+            {
+                NavigationHandler.Invoke(navigateBackCommand, baseEvent);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"{nameof(NavigationHandler)} raised an exception for {this}");
+                Debug.LogException(e);
+            }
+        }
+
+        private static readonly IStyle _headerRootStyle = new CompactStyle
+        {
+            flexGrow = 0,
+            flexShrink = 0,
+            flexDirection = FlexDirection.Row,
+            padding = 0,
+            margin = 0,
+            justifyContent = Justify.SpaceBetween,
+            borderWidth = 0,
+            borderBottomWidth = 1,
+            height = 21,
+            borderBottomColor = new Color(r: 35 / 255f, g: 35 / 255f, b: 35 / 255f, a: 1f),
+            borderRadius = 0,
+            alignContent = Align.Center,
+            width = Length.Percent(100)
+        };
+        
+        
         private TextElement MakeLabel()
         {
             Label label = new()
             {
-                text = _headerText
+                text = _headerText,
             };
-            label.AddToClassList("poly-stackframe-header__root");
+            label.style.ApplyStyles(_headerRootStyle);
             return label;
         }
+        
 
         private TextElement MakeButton()
         {
-            Button button = new(OnNavigateBack)
+            Button button = new()
             {
                 text = _headerText,
             };
@@ -79,9 +117,19 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             {
                 pickingMode = PickingMode.Ignore
             };
-            button.AddToClassList("poly-stackframe-header__root");
-            backIcon.AddToClassList("unity-button");
-            backIcon.AddToClassList("poly-stackframe-header__back-icon");
+            backIcon.style.ApplyStyles(new CompactStyle
+            {
+                backgroundImage = EditorGUIUtility.IconContent("Arrownavigationleft@2x").image as Texture2D,
+                height = 15,
+                width = 15,
+                margin = 0,
+                padding = 0,
+                borderWidth = 0,
+                alignSelf = Align.Center,
+                backgroundPosition = new BackgroundPosition(BackgroundPositionKeyword.Center)
+            });
+            button.AddManipulator(_backButtonNavigationManipulator);
+            button.style.ApplyStyles(_headerRootStyle);
             button.Add(backIcon);
             return button;
         }

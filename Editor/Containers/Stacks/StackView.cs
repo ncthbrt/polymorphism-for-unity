@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Polymorphism4Unity.Editor.Styling;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using UnityEngine.UIElements;
@@ -29,8 +30,17 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         
         public StackView()
         {
-            this.AddStackStyles();
-            AddToClassList("poly-stack__root");
+            style.ApplyStyles(new CompactStyle
+            {
+                flexGrow = 1,
+                flexShrink = 0,
+                overflow = Overflow.Hidden,
+                width = Length.Percent(100),
+                height = Length.Percent(100),
+                flexDirection = FlexDirection.Row,
+                alignItems = Align.FlexStart,
+                justifyContent = Justify.FlexStart
+            });
             RegisterCallback<AttachToPanelEvent>(HandleAttachToPanelEvent);
             RegisterCallback<DetachFromPanelEvent>(HandleDetachFromPanelEvent);
         }
@@ -48,6 +58,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             StackFrameElement[] children = Children().OfType<StackFrameElement>().Reverse().ToArray();
             children.Take(children.Length - 2).ForEach(x =>
             {
+                // Hide every element except for the last one in the stack
                 x.Hide();
             });
             _frameStack = new Stack<StackFrameElement>(children);
@@ -61,7 +72,6 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         {
             _frameStack.Clear();
         }
-
         
         #region  Public Api
 

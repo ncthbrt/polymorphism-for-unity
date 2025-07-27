@@ -1,6 +1,8 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Polymorphism4Unity.Editor.Styling;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using UnityEngine;
@@ -11,9 +13,9 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
     [UxmlElement(nameof(StackFrameElement))]
     public sealed partial class StackFrameElement : VisualElement
     {
-        private const string AnimatingOutClassName = "poly-stackframe__animating-out";
-        private const string StableClassName = "poly-stackframe__stable";
-        private const string AnimatingInClassName = "poly-stackframe__animating-in";
+        // private const string AnimatingOutClassName = "poly-stackframe__animating-out";
+        // private const string StableClassName = "poly-stackframe__stable";
+        // private const string AnimatingInClassName = "poly-stackframe__animating-in";
         public override VisualElement contentContainer { get; }
         private StackFrameHeader? _maybeHeader;
 
@@ -60,11 +62,24 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         
         public StackFrameElement()
         {
-            this.AddStackStyles();
-            AddToClassList("poly-stackframe__root");
+            style.ApplyStyles(new CompactStyle
+            {
+                flexGrow = 1,
+                flexShrink = 0,
+                width = Length.Percent(100),
+                height = Length.Percent(100),
+                flexDirection = FlexDirection.Column,
+            });
+            ApplyInitial();
             contentContainer = new VisualElement();
             contentContainer.name = nameof(contentContainer);
-            contentContainer.AddToClassList("poly-stackframe__content");
+            contentContainer.style.ApplyStyles(new CompactStyle
+            {
+                flexShrink = 0,
+                flexGrow = 0,
+                width = Length.Percent(100),
+                height = Length.Percent(100)
+            });
             hierarchy.Add(contentContainer);
             RegisterCallback<AttachToPanelEvent>(HandleAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(HandleDetachFromPanel);
@@ -72,47 +87,13 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
 
         private void HandleAttachToPanel(AttachToPanelEvent attachToPanelEvent)
         {
-            if (_maybeHeader is null)
-            {
-                return;
-            }
-            _maybeHeader.OnNavigateBack += HandleHeaderClicked;
-
-            _maybeHeader?.RegisterCallback<ClickEvent>(HandleHeaderClicked);   
+            
         }
         
         private void HandleDetachFromPanel(DetachFromPanelEvent detachFromPanelEvent)
         {
-            if (_maybeHeader is null)
-            {
-                return;
-            }
-            
-            _maybeHeader.OnNavigateBack -= HandleHeaderClicked;
         }
-
-        private void HandleHeaderClicked()
-        {
-            if (MaybeStack is null)
-            {
-                return;
-            }
-            
-            try
-            {
-                await MaybeStack.TryPopAsync();
-            }
-            catch(Exception e)
-            {
-                Debug.LogError("Failed to navigate back");
-                Debug.LogException(e);
-            }
-        }
-
-        private void RaiseNavigateBack()
-        {
-            SendEvent();
-        }
+        
 
         public Task AnimateIn(bool enableBackButton)
         {
@@ -138,7 +119,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             }
             registrationSet.RegisterCallbackOnce<TransitionEndEvent>(HandleTransitionEnd);
             registrationSet.RegisterCallbackOnce<TransitionCancelEvent>(HandleTransitionCancel);
-            AddToClassList(AnimatingInClassName);
+            ApplyAnimatingIn();
             registrationSet.AttachedToTask(taskCompletionSource.Task);
             return taskCompletionSource.Task;
         }
@@ -160,14 +141,14 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             registrationSet.RegisterCallbackOnce<TransitionEndEvent>(HandleTransitionEnd);
             registrationSet.RegisterCallbackOnce<TransitionCancelEvent>(HandleTransitionCancel);
             registrationSet.AttachedToTask(taskCompletionSource.Task);
-            AddToClassList(AnimatingOutClassName);
+            ApplyAnimatingOut();
             return taskCompletionSource.Task;
         }
 
         public void Hide()
         {
             SetEnabled(false);
-            RemoveFromClassList(StableClassName);
+            ApplyInitial();
             style.display = DisplayStyle.None;
         }
 
@@ -175,15 +156,14 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         {
             SetEnabled(enabled);
             style.display = DisplayStyle.Flex;
-            AddToClassList(StableClassName);
+            ApplyStable();
         }
 
         
         private void PostAnimateIn()
         {
             SetEnabled(true);
-            RemoveFromClassList(AnimatingInClassName);
-            AddToClassList(StableClassName);
+            ApplyStable();
         }
 
         
@@ -191,9 +171,54 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         {
             visible = false;
             SetEnabled(false);
-            RemoveFromClassList(AnimatingOutClassName);
-            RemoveFromClassList(StableClassName);
+            ApplyInitial();
             RemoveFromHierarchy();
+        }
+
+        private void ApplyInitial()
+        {
+            style.ApplyStyles(new VerboseStyle
+            {
+                translate = new Translate(Length.Percent(110), Length.Percent(0)),
+                transitionProperty = new StyleList<StylePropertyName>()
+            });
+        }
+
+        private void ApplyStable()
+        {
+            style.ApplyStyles(
+                new VerboseStyle
+                {
+                    transitionProperty = new StyleList<StylePropertyName>()
+                }, 
+                new CompactStyle
+                {
+                    translate = new Translate(0f, 0f),
+                    transitionDuration = 0
+                }
+            );
+        }
+
+        private void ApplyAnimatingOut()
+        {
+            style.ApplyStyles(new CompactStyle
+            {
+                transitionProperty = nameof(IStyle.translate),
+                transitionDuration = 0.3f,
+                transitionTimingFunction = EasingMode.EaseInOutSine,
+                translate = new Translate(Length.Percent(110), 0)
+            });
+        }
+        
+        private void ApplyAnimatingIn()
+        {
+            style.ApplyStyles(new CompactStyle
+            {
+                transitionProperty = nameof(IStyle.translate),
+                transitionDuration = 0.3f,
+                transitionTimingFunction = EasingMode.EaseInOutSine,
+                translate = new Translate(0, 0)
+            });
         }
         
 

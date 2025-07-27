@@ -6,6 +6,7 @@ namespace Polymorphism4Unity.Editor.Commands
     {
         
     }
+    
     public class AbstractNavigationCommand<T> : EventBase<T>, INavigationCommand
         where T: AbstractNavigationCommand<T>, new()
     {

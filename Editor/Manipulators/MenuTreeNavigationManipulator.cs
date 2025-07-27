@@ -1,27 +1,30 @@
 ﻿#nullable enable
 using System;
 using Polymorphism4Unity.Editor.Commands;
+using Polymorphism4Unity.Safety;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Polymorphism4Unity.Editor.Manipulators
 {
-    public class MenuTreeNavigationManipulator<T>: Manipulator
+    public class MenuTreeNavigationManipulator<T> : Manipulator
     {
         private readonly KeyboardNavigationManipulator _keyboardNavigationManipulator;
-        private readonly 
-        
-        public MenuTreeNavigationManipulator()
+        public Action<INavigationCommand, EventBase> NavigationHandler { get; set; }
+
+        public MenuTreeNavigationManipulator(Action<INavigationCommand, EventBase> navigationHandler)
         {
+            NavigationHandler = navigationHandler;
             _keyboardNavigationManipulator = new KeyboardNavigationManipulator(HandleKeyboardNavigationEvent);
         }
-        
+
         protected override void RegisterCallbacksOnTarget()
         {
             target.AddManipulator(_keyboardNavigationManipulator);
             target.RegisterCallback<KeyUpEvent>(HandleKeyUpEvent);
         }
 
-        
+
         protected override void UnregisterCallbacksFromTarget()
         {
             target.RemoveManipulator(_keyboardNavigationManipulator);
@@ -35,7 +38,7 @@ namespace Polymorphism4Unity.Editor.Manipulators
 
         private void HandleKeyboardNavigationEvent(KeyboardNavigationOperation navigationOperation, EventBase baseEvent)
         {
-            EventBase navigationEvent;
+            EventBase command;
             switch (navigationOperation)
             {
                 case KeyboardNavigationOperation.None:
@@ -43,61 +46,67 @@ namespace Polymorphism4Unity.Editor.Manipulators
                     return;
                 case KeyboardNavigationOperation.MoveLeft:
                 case KeyboardNavigationOperation.Cancel:
-                {
-                    navigationEvent = NavigateBackCommand.GetPooled();
-                    break;
-                }
+                    {
+                        command = NavigateBackCommand.GetPooled();
+                        break;
+                    }
                 case KeyboardNavigationOperation.MoveRight:
                 case KeyboardNavigationOperation.Submit:
-                {
-                    if (target is IHasReadOnlyValue<T> value)
                     {
-                        NavigateSubmitValueCommand<T> submitCommand = NavigateSubmitValueCommand<T>.GetPooled();
-                        navigationEvent = submitCommand;
-                        submitCommand.Value = value.Value;
+                        command = NavigateSubmitCommand.GetPooled();
+                        break;
                     }
-                    else
-                    {
-                        return;
-                    }
-                    break;
-                }
                 case KeyboardNavigationOperation.Previous:
-                {
-                    navigationEvent = NavigateUpCommand.GetPooled();
-                    break;
-                }
+                    {
+                        command = NavigateUpCommand.GetPooled();
+                        break;
+                    }
                 case KeyboardNavigationOperation.Next:
-                {
-                    navigationEvent = NavigateDownCommand.GetPooled();
-                    break;
-                }
+                    {
+                        command = NavigateDownCommand.GetPooled();
+                        break;
+                    }
                 case KeyboardNavigationOperation.PageUp:
-                {
-                    navigationEvent = NavigatePageUpCommand.GetPooled();
-                    break;
-                }
+                    {
+                        command = NavigatePageUpCommand.GetPooled();
+                        break;
+                    }
                 case KeyboardNavigationOperation.PageDown:
-                {
-                    navigationEvent = NavigatePageDownCommand.GetPooled();
-                    break;
-                }
+                    {
+                        command = NavigatePageDownCommand.GetPooled();
+                        break;
+                    }
                 case KeyboardNavigationOperation.Begin:
-                {
-                    navigationEvent = NavigateTopCommand.GetPooled();
-                    break;
-                }
+                    {
+                        command = NavigateTopCommand.GetPooled();
+                        break;
+                    }
                 case KeyboardNavigationOperation.End:
-                {
-                    navigationEvent = NavigateEndCommand.GetPooled();
-                    break;
-                }
+                    {
+                        command = NavigateBottomCommand.GetPooled();
+                        break;
+                    }
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(navigationOperation), navigationOperation, null);
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(navigationOperation), navigationOperation, null);
+                    }
             }
-            target.SendEvent(navigationEvent);
+            command.target = target;
+            SafelyInvokeHandler(Asserts.IsType<INavigationCommand>(command), baseEvent);
         }
 
-        
+        private void SafelyInvokeHandler(INavigationCommand command, EventBase baseEvent)
+        {
+            Asserts.IsNotNull(NavigationHandler);
+            try
+            {
+                NavigationHandler.Invoke(command, baseEvent);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"{nameof(NavigationHandler)} raised an exception for {target}");
+                Debug.LogException(e);
+            }
+        }
     }
 }

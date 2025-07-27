@@ -3,10 +3,13 @@ using UnityEngine.UIElements;
 
 namespace Polymorphism4Unity.Editor.Fields.Types
 {
-    public class TypeDropdownField<T>: BaseField<Type>
+    
+    public class TypeDrowdownField : BaseField<Type>
     {
-        public TypeDropdownField(string label) : base(label, CreateFieldInput())
+        public Type Type { get; }
+        public TypeDrowdownField(Type type) : base("Label", CreateFieldInput())
         {
+            Type = type;
         }
         
         private static VisualElement CreateFieldInput()
@@ -16,9 +19,16 @@ namespace Polymorphism4Unity.Editor.Fields.Types
                 name = "TypePopup",
             };
 
-            input.AddToClassList("");
             return input;
         }
-
     }
+    
+    [UxmlElement(nameof(TypeDrowdownField))]
+    public partial class TypeDropdownField<T>: TypeDrowdownField
+    {
+        public TypeDropdownField(): base(typeof(T))
+        {
+        }
+    }
+    
 }

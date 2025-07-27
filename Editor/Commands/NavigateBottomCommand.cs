@@ -2,7 +2,7 @@
 
 namespace Polymorphism4Unity.Editor.Commands
 {
-    public class NavigateEndCommand: AbstractNavigationCommand<NavigateEndCommand>
+    public class NavigateBottomCommand: AbstractNavigationCommand<NavigateBottomCommand>
     {
     }
 }
