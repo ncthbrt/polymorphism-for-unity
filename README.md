@@ -15,6 +15,7 @@ Low ceremony package for working with polymorphic types in the unity editor
    - Good test coverage
    - Standard serialization mechanisms
    - Compatible with IL2CPP targets
+   - Thoughtful UI for these types designed with correctness in mind  
 - Support for generic types in the custom type selection dropdown
 - Support for generic ScriptableObjects using Roslyn codegen
 - Support for complete feature-set from Unity version 2019.3 and above
