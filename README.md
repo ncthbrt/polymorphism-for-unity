@@ -9,7 +9,7 @@ Low ceremony package for working with polymorphic types in the unity editor
     - Do not replace standard editors/inspectors
 - Well documented and composable set of UI elements to aid in supporting additional polymorphic data structures
 - Take advantage of new editor functionality as it becomes available (when they reduce the amount of abstraction needed)
-     - Notably Unity 6.0 adds `applyToCollection` to the PropertyAtrribute class which will allow PropertyAttributes to be added to arrays and lists 
+     - Notably Unity 6.0 adds `applyToCollection` to the `PropertyAttribute` class which will allow property attributes to be added to arrays and lists 
 - Support for a range of useful generic data-structures
    - Predictable performance characteristics for these types
    - Good test coverage
