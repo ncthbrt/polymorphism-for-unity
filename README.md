@@ -11,8 +11,10 @@ Low ceremony package for working with polymorphic types in the unity editor
 - Take advantage of new editor functionality as it becomes available (when they reduce the amount of abstraction needed)
      - Notably Unity 6.0 adds `applyToCollection` to the PropertyAtrribute class which will allow PropertyAttributes to be added to arrays and lists 
 - Support for a range of useful generic data-structures
-    - Predictable performance characteristics for these types
+   - Predictable performance characteristics for these types
+   - Good test coverage
    - Standard serialization mechanisms
+   - Compatible with IL2CPP targets
 - Support for generic types in the custom type selection dropdown
 - Support for generic ScriptableObjects using Roslyn codegen
 - Support for complete feature-set from Unity version 2019.3 and above
@@ -20,6 +22,7 @@ Low ceremony package for working with polymorphic types in the unity editor
 
 ## Non-Goals
 - IMGUI suppport will be added when trivial, but this is a secondary consideration
+    - Contributions will be accepted on this front after the initial release
 - A library of Odin/Tri-Inspector style attributes to customise the editor is a non-goal
      - While convenient, this style of editor extension is invasive in that it replaces the default editor and so it does not play nicely with other editor extensions
 
