@@ -5,8 +5,8 @@ Low ceremony package for working with polymorphic types in the unity editor
 ## Goals
 
 - Non-invasive property drawers
-      - Use standard `PropertyDrawer` attributes wherever possible; use custom generic types where not
-      - Do not replace standard editors/inspectors
+    - Use standard `PropertyDrawer` attributes wherever possible; use custom generic types where not
+    - Do not replace standard editors/inspectors
 - Well documented and composable set of UI elements to aid in supporting additional polymorphic data structures
 - Take advantage of new editor functionality as it becomes available (when they reduce the amount of abstraction needed)
      - Notably Unity 6.0 adds `applyToCollection` to the PropertyAtrribute class which will allow PropertyAttributes to be added to arrays and lists 
