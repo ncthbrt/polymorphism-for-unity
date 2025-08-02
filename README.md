@@ -24,7 +24,7 @@ Low ceremony package for working with polymorphic types in the unity editor
 - IMGUI suppport will be added when trivial, but this is a secondary consideration
     - Contributions will be accepted on this front after the initial release
 - A library of Odin/Tri-Inspector style attributes to customise the editor is a non-goal
-     - While convenient, this style of editor extension is invasive in that it replaces the default editor and so it does not play nicely with other editor extensions
+     - While convenient, this style of editor extension is invasive in that it replaces the default editor and so it does not always play nicely with other editor extensions
 
 ## Notes
 
