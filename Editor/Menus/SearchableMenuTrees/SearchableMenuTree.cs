@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Polymorphism4Unity.Editor.Commands;
 using Polymorphism4Unity.Editor.Containers.Stacks;
+using Polymorphism4Unity.Editor.Styling;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
-using Raffinert.FuzzySharp;
 using Raffinert.FuzzySharp.Extractor;
+using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -24,6 +26,8 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 
         [UxmlAttribute]
         public string Path { get; set; } = String.Empty;
+        
+        public bool ShowNextIcon { get; set; }
 
 #nullable disable
         [UxmlAttribute]
@@ -31,21 +35,56 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 #nullable enable
     }
     
-    public abstract class SearchableMenuTree<T>: VisualElement, INotifyValueChanged<T?>
+    public abstract class SearchableMenuTree<T>: VisualElement
         where T: class
     {
         abstract class Node: TextElement, IComparable<Node>
         {
-            public sealed override string text
+
+            private bool _showNextIcon = false;
+            
+            protected bool ShowNextIcon
             {
-                get => ((INotifyValueChanged<string>)this).value;
-                set => ((INotifyValueChanged<string>)this).value = value;
+                get => _showNextIcon;
+                set
+                {
+                    bool prev = _showNextIcon;
+                    _showNextIcon = value;
+                    if (prev != _showNextIcon)
+                    {
+                        if (_showNextIcon)
+                        {
+                            Add(_nextIcon);
+                        }
+                        else
+                        {
+                            Remove(_nextIcon);
+                        }
+                    }
+                }
             }
 
-            protected Node(string text)
+            private readonly VisualElement _nextIcon;
+            protected Node(string text, bool showNextIcon)
             {
-                this.text = text;
-                this.AddSearchableMenuTreeStyles();
+                base.text = text;
+                _nextIcon = new VisualElement();
+                _nextIcon.style.ApplyStyles(new CompactStyle()
+                {
+                    backgroundImage = EditorGUIUtility.IconContent("Arrownavigationright@2x").image as Texture2D,
+                    height = 15,
+                    width = 15,
+                    margin = 0,
+                    padding = 0,
+                    borderWidth = 0,
+                    alignSelf = Align.Center,
+                    backgroundPosition = new BackgroundPosition(BackgroundPositionKeyword.Center)
+                });
+                style.ApplyStyles(new CompactStyle
+                {
+                    justifyContent = Justify.SpaceBetween
+                });
+                ShowNextIcon = showNextIcon;
             }
 
             public int CompareTo(Node other)
@@ -55,7 +94,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
                 switch (this, other)
                 {
                     case ({ } thisNode, {} otherNode) when thisNode.GetType() == otherNode.GetType():
-                        return currentCulture.CompareInfo.Compare(thisNode.text, otherNode.text);    
+                        return currentCulture.CompareInfo.Compare(thisNode.text, otherNode.text);
                     case (LeafNode, _):
                         return 1;
                     case (_, LeafNode):
@@ -71,7 +110,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         {
             public Dictionary<string, List<Node>> ChildNodes { get; set; } = new();
             
-            public ParentNode(string name): base(name)
+            public ParentNode(string name): base(name, true)
             {
             }
         }
@@ -80,7 +119,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         {
             public T Value { get; set; }
 
-            public LeafNode(string name, T value): base(name)
+            public LeafNode(string name, T value, bool showNext): base(name, showNext)
             {
                 Value = value;
                 RegisterCallback<AttachToPanelEvent>(HandleAttachToPanel);
@@ -88,8 +127,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             }
 
             void HandleAttachToPanel(AttachToPanelEvent _)
-            {
-                
+            {   
             }
             
             void HandleDetachFromPanel(DetachFromPanelEvent _)
@@ -117,27 +155,8 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         private readonly StackFrameElement _initialStackFrame;
         private IndexItem[]? _searchIndex = null;
         protected abstract IEnumerable<SearchableMenuTreeItem<T>> Items { get; }
-        private T? _maybeValue;
-        
-        public T? value
-        {
-            get => _maybeValue;
-            set
-            {
-                if (EqualsCurrentValue(value))
-                    return;
-                T? previousValue = _maybeValue;
-                _maybeValue = value;
-                if (panel == null)
-                {
-                    return;
-                }
-                using ChangeEvent<T?> pooled = ChangeEvent<T?>.GetPooled(previousValue, _maybeValue);
-                pooled.target = this;
-                SendEvent(pooled);
-            }
-        }
-        
+
+        public Action<T?> OnSelected { get; set; } = (_) => { };
         
         [UxmlAttribute]
         public string HeaderText
@@ -148,29 +167,71 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         
         protected SearchableMenuTree()
         {
-            this.AddSearchableMenuTreeStyles();
-            AddToClassList("poly-searchable-menu-tree__root");
             _stack = new StackView();
             _initialStackFrame = new StackFrameElement();
             Add(_stack);
             RegisterCallback<AttachToPanelEvent>(HandleAttachToPanelEvent);
             RegisterCallback<DetachFromPanelEvent>(HandleDetachFromPanelEvent);
-            SetValueWithoutNotify(null);
         }
 
         protected virtual void HandleAttachToPanelEvent(AttachToPanelEvent _)
         {
             Asserts.IsNull(_registrationSet);
             _registrationSet = new RegistrationSet(this);
+            _registrationSet.RegisterCallback<NavigateBackCommand>(HandleNavigateBackCommand);
+            _registrationSet.RegisterCallback<NavigateBottomCommand>(HandleNavigateBottomCommand);
+            _registrationSet.RegisterCallback<NavigateDownCommand>(HandleNavigateDownCommand);
+            _registrationSet.RegisterCallback<NavigatePageDownCommand>(HandleNavigatePageDownCommand);
+            _registrationSet.RegisterCallback<NavigatePageUpCommand>(HandleNavigatePageUpCommand);
+            _registrationSet.RegisterCallback<NavigateSearchCommand>(HandleNavigateSearchCommand);
+            _registrationSet.RegisterCallback<NavigateSubmitCommand>(HandleNavigateSubmitCommand);
+            _registrationSet.RegisterCallback<NavigateTopCommand>(HandleNavigateTopCommand);
+            _registrationSet.RegisterCallback<NavigateUpCommand>(HandleNavigateUpCommand);
             RefreshItems();
         }
-        
 
         protected virtual void HandleDetachFromPanelEvent(DetachFromPanelEvent _)
         {
             Asserts.IsNotNull(_registrationSet).Dispose();
             _registrationSet = null;
             _stack.ClearAll();
+        }
+        
+        private void HandleNavigateBackCommand(NavigateBackCommand command)
+        {
+            
+        }
+        private void HandleNavigateBottomCommand(NavigateBottomCommand command)
+        {
+            
+        }
+        private void HandleNavigateDownCommand(NavigateDownCommand command)
+        {
+            
+        }
+        private void HandleNavigatePageDownCommand(NavigatePageDownCommand command)
+        {
+            
+        }
+        private void HandleNavigatePageUpCommand(NavigatePageUpCommand command)
+        {
+            
+        }
+        private void HandleNavigateSearchCommand(NavigateSearchCommand command)
+        {
+            
+        }
+        private void HandleNavigateSubmitCommand(NavigateSubmitCommand command)
+        {
+            
+        }
+        private void HandleNavigateTopCommand(NavigateTopCommand command)
+        {
+            
+        }
+        private void HandleNavigateUpCommand(NavigateUpCommand command)
+        {
+            
         }
 
         private static IndexItem[] ConstructIndex(IEnumerable<SearchableMenuTreeItem<T>> items)
@@ -183,7 +244,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 
         private static ExtractedResult<IndexItem>[] SearchIndex(IndexItem[] index, string searchTerm)
         {
-            IndexItem searchIndexItem = new IndexItem(searchTerm);
+            IndexItem searchIndexItem = new(searchTerm);
             IEnumerable<ExtractedResult<IndexItem>> searchResults = FuzzSearch.ExtractTop(
                 searchIndexItem, 
                 index, 
@@ -204,11 +265,6 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             _initialStackFrame.AddRange(treeRoots);
             _stack.Add(_initialStackFrame);
             _stack.PushWithoutAnimate(_initialStackFrame);
-        }
-
-        private bool EqualsCurrentValue(T? newValue)
-        {
-            return EqualityComparer<T?>.Default.Equals(_maybeValue, newValue);
         }
 
         private static void CreateShortcuts(Node[] nodes)
@@ -249,7 +305,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
                     current = maybeParentNode;
                 }
                 string leafName = parts[^1];
-                LeafNode leafNode = new(leafName, item.Value);
+                LeafNode leafNode = new(leafName, item.Value, item.ShowNextIcon);
                 if (!current.ChildNodes.TryGetValue(leafName, out List<Node> finalNodes))
                 {
                     finalNodes = new List<Node>();
@@ -271,11 +327,5 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             };
             return toolbar;
         }
-
-        public void SetValueWithoutNotify(T? newValue)
-        {
-            _maybeValue = newValue;
-        }
-
     }
 }

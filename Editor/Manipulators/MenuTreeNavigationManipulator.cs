@@ -34,6 +34,14 @@ namespace Polymorphism4Unity.Editor.Manipulators
         private void HandleKeyUpEvent(KeyUpEvent upEvent)
         {
             char upEventCharacter = upEvent.character;
+            if (upEventCharacter != '\0')
+            {
+                NavigateSearchCommand command = NavigateSearchCommand.GetPooled();
+                command.Character = upEventCharacter;
+                upEvent.StopPropagation();
+                command.target = target;
+                SafelyInvokeHandler(command, upEvent);   
+            }
         }
 
         private void HandleKeyboardNavigationEvent(KeyboardNavigationOperation navigationOperation, EventBase baseEvent)

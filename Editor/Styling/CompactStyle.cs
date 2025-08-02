@@ -9,30 +9,21 @@ namespace Polymorphism4Unity.Editor.Styling
 {
     public class CompactStyle: IStyle
     {
-        private StyleInt _unitySlice;
-        
         public StyleInt unitySlice
         {
-            get => _unitySlice;
             set
             {
-                _unitySlice = value;
-                
                 unitySliceBottom = value;
                 unitySliceLeft = value;
                 unitySliceRight = value;
                 unitySliceTop = value;
             }
         }
-        
-        private StyleLength _padding;
+
         public StyleLength padding
         {
-            get => _padding;
             set
-            {                
-                _padding = value;
-                
+            {
                 paddingBottom = value;
                 paddingLeft = value;
                 paddingRight = value;
@@ -40,29 +31,21 @@ namespace Polymorphism4Unity.Editor.Styling
             }
         }
         
-        private StyleLength _margin;
         public StyleLength margin
         {
-            get => _margin;
             set
-            {                
-                _margin = value;
-                
+            {
                 marginBottom = value;
                 marginLeft = value;
                 marginRight = value;
                 marginTop = value;
             }
         }
-        
-        private StyleColor _borderColor;
+
         public StyleColor borderColor
         {
-            get => _borderColor;
             set
-            {                
-                _borderColor = value;
-                
+            {
                 borderBottomColor = value;
                 borderRightColor = value;
                 borderLeftColor = value;
@@ -70,29 +53,21 @@ namespace Polymorphism4Unity.Editor.Styling
             }
         }
         
-        private StyleLength _borderRadius;
         public StyleLength borderRadius
         {
-            get => _borderRadius;
             set
             {                
-                _borderRadius = value;
-                
                 borderBottomLeftRadius = value;
                 borderBottomRightRadius = value;
                 borderTopLeftRadius = value;
                 borderTopRightRadius = value;
             }
         }
-        
-        private StyleFloat _borderWidth;
+
         public StyleFloat borderWidth
         {
-            get => _borderWidth;
             set
-            {                
-                _borderWidth = value;
-                
+            {
                 borderBottomWidth = value;
                 borderLeftWidth = value;
                 borderRightWidth = value;
@@ -100,13 +75,10 @@ namespace Polymorphism4Unity.Editor.Styling
             }
         }
 
-        private StyleBackgroundPosition _backgroundPosition;
         public StyleBackgroundPosition backgroundPosition
         {
-            get => _backgroundPosition;
             set
             {
-                _backgroundPosition = value;
                 backgroundPositionX = value;
                 backgroundPositionY = value;
             }
@@ -172,7 +144,6 @@ namespace Polymorphism4Unity.Editor.Styling
         
         public TimeValue transitionDelay 
         { 
-            get => ((IStyle)this).transitionDelay.value.FirstOrDefault(); 
             set => ((IStyle)this).transitionDelay = value.AsStyleList(); 
         }
         
@@ -180,7 +151,6 @@ namespace Polymorphism4Unity.Editor.Styling
 
         public TimeValue transitionDuration
         {
-            get => ((IStyle)this).transitionDuration.value.FirstOrDefault(); 
             set => ((IStyle)this).transitionDuration = value.AsStyleList();
         }
         
@@ -188,15 +158,12 @@ namespace Polymorphism4Unity.Editor.Styling
         
         public StylePropertyName transitionProperty
         {
-            get => ((IStyle)this).transitionProperty.value.FirstOrDefault(); 
             set => ((IStyle)this).transitionProperty = value.AsStyleList();
         }
         
         StyleList<StylePropertyName> IStyle.transitionProperty { get; set; } = StyleKeyword.Null;
-        
         public EasingFunction transitionTimingFunction
         {
-            get => ((IStyle)this).transitionTimingFunction.value.FirstOrDefault(); 
             set => ((IStyle)this).transitionTimingFunction = value.AsStyleList();
         }
         
@@ -215,6 +182,10 @@ namespace Polymorphism4Unity.Editor.Styling
         public StyleInt unitySliceRight { get; set; } = StyleKeyword.Null;
         public StyleFloat unitySliceScale { get; set; } = StyleKeyword.Null;
         public StyleInt unitySliceTop { get; set; } = StyleKeyword.Null;
+#if UNITY_6000_0_OR_NEWER
+        public StyleEnum<SliceType> unitySliceType { get; set; }
+#endif
+        
         public StyleEnum<TextAnchor> unityTextAlign { get; set; } = StyleKeyword.Null;
         public StyleEnum<TextGeneratorType> unityTextGenerator { get; set; } = StyleKeyword.Null;
         public StyleColor unityTextOutlineColor { get; set; } = StyleKeyword.Null;
