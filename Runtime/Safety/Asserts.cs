@@ -106,6 +106,20 @@ namespace Polymorphism4Unity.Safety
             throw new BinaryAssertionException<string, Regex>(a, regex, $"(new {nameof(Regex)}({nameof(pattern)}).IsMatch(a)) == false");
         }
 
+        public static void HasLength<T>(ICollection collection, int length)
+        {
+            IsEqual(collection.Count, length);
+        }
+        
+        public static void ShorterThan<T>(ICollection collection, int length)
+        {
+            IsLess(collection.Count, length);
+        }
+        
+        public static void LongerThan<T>(ICollection collection, int length)
+        {
+            IsGreater(collection.Count, length);
+        }
 
         public static T IsEqual<T>(T a, T b)
         {

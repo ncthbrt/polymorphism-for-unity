@@ -1,6 +1,8 @@
 ﻿#nullable enable
 using System;
 using Polymorphism4Unity.Editor.Commands;
+using Polymorphism4Unity.Editor.Menus.SearchableMenuTrees;
+using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -40,7 +42,7 @@ namespace Polymorphism4Unity.Editor.Manipulators
                 command.Character = upEventCharacter;
                 upEvent.StopPropagation();
                 command.target = target;
-                SafelyInvokeHandler(command, upEvent);   
+                NavigationHandler.SafelyInvoke(command, upEvent);
             }
         }
 
@@ -54,67 +56,53 @@ namespace Polymorphism4Unity.Editor.Manipulators
                     return;
                 case KeyboardNavigationOperation.MoveLeft:
                 case KeyboardNavigationOperation.Cancel:
-                    {
-                        command = NavigateBackCommand.GetPooled();
-                        break;
-                    }
+                {
+                    command = NavigateBackCommand.GetPooled();
+                    break;
+                }
                 case KeyboardNavigationOperation.MoveRight:
                 case KeyboardNavigationOperation.Submit:
-                    {
-                        command = NavigateSubmitCommand.GetPooled();
-                        break;
-                    }
+                {
+                    command = NavigateSubmitCommand.GetPooled();
+                    break;
+                }
                 case KeyboardNavigationOperation.Previous:
-                    {
-                        command = NavigateUpCommand.GetPooled();
-                        break;
-                    }
+                {
+                    command = NavigateUpCommand.GetPooled();
+                    break;
+                }
                 case KeyboardNavigationOperation.Next:
-                    {
-                        command = NavigateDownCommand.GetPooled();
-                        break;
-                    }
+                {
+                    command = NavigateDownCommand.GetPooled();
+                    break;
+                }
                 case KeyboardNavigationOperation.PageUp:
-                    {
-                        command = NavigatePageUpCommand.GetPooled();
-                        break;
-                    }
+                {
+                    command = NavigatePageUpCommand.GetPooled();
+                    break;
+                }
                 case KeyboardNavigationOperation.PageDown:
-                    {
-                        command = NavigatePageDownCommand.GetPooled();
-                        break;
-                    }
+                {
+                    command = NavigatePageDownCommand.GetPooled();
+                    break;
+                }
                 case KeyboardNavigationOperation.Begin:
-                    {
-                        command = NavigateTopCommand.GetPooled();
-                        break;
-                    }
+                {
+                    command = NavigateTopCommand.GetPooled();
+                    break;
+                }
                 case KeyboardNavigationOperation.End:
-                    {
-                        command = NavigateBottomCommand.GetPooled();
-                        break;
-                    }
+                {
+                    command = NavigateBottomCommand.GetPooled();
+                    break;
+                }
                 default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(navigationOperation), navigationOperation, null);
-                    }
+                {
+                    throw new ArgumentOutOfRangeException(nameof(navigationOperation), navigationOperation, null);
+                }
             }
             command.target = target;
-            SafelyInvokeHandler(Asserts.IsType<INavigationCommand>(command), baseEvent);
-        }
-
-        private void SafelyInvokeHandler(INavigationCommand command, EventBase baseEvent)
-        {
-            Asserts.IsNotNull(NavigationHandler);
-            try
-            {
-                NavigationHandler.Invoke(command, baseEvent);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"{nameof(NavigationHandler)} raised an exception for {target}");
-                Debug.LogException(e);
-            }
+            NavigationHandler.SafelyInvoke(Asserts.IsType<INavigationCommand>(command), baseEvent);
         }
     }
 }

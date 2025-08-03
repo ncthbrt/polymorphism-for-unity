@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using Polymorphism4Unity.Editor.Commands;
+using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -23,22 +24,14 @@ namespace Polymorphism4Unity.Editor.Manipulators
             target.AddManipulator(_clickable);
         }
 
-        private void HandleClickEvent()
+        private void HandleClickEvent() 
         {
             ClickEvent clickEvent = ClickEvent.GetPooled();
             clickEvent.target = target;
             NavigateBackCommand navigateBackCommand = NavigateBackCommand.GetPooled();
             navigateBackCommand.target = target;
             Asserts.IsNotNull(NavigationHandler);
-            try
-            {
-                NavigationHandler.Invoke(navigateBackCommand, clickEvent);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"{nameof(NavigationHandler)} raised an exception for {target}");
-                Debug.LogException(e);
-            }
+            NavigationHandler.SafelyInvoke(navigateBackCommand, clickEvent);    
         }
 
         protected override void UnregisterCallbacksFromTarget()

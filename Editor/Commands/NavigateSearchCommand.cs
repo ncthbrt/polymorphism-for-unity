@@ -6,4 +6,4 @@ namespace Polymorphism4Unity.Editor.Commands
     {
         public char Character { get; set; }
     }
-}
+}   

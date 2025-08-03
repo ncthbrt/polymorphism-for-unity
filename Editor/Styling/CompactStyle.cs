@@ -84,6 +84,15 @@ namespace Polymorphism4Unity.Editor.Styling
             }
         }
 
+        public StyleFloat flex
+        {
+            set
+            {
+                flexGrow = value;
+                flexShrink = value;
+            }
+        }
+
         public StyleEnum<Align> alignContent { get; set; } = StyleKeyword.Null;
         public StyleEnum<Align> alignItems { get; set; } = StyleKeyword.Null;
         public StyleEnum<Align> alignSelf { get; set; } = StyleKeyword.Null;

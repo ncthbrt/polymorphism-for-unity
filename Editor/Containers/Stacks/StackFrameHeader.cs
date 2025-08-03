@@ -4,9 +4,9 @@ using JetBrains.Annotations;
 using Polymorphism4Unity.Editor.Commands;
 using Polymorphism4Unity.Editor.Manipulators;
 using Polymorphism4Unity.Editor.Styling;
+using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -67,18 +67,10 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         private void HandleNavigationEvent(INavigationCommand navigateBackCommand, EventBase baseEvent)
         {
             Asserts.IsNotNull(NavigationHandler);
-            try
-            {
-                NavigationHandler.Invoke(navigateBackCommand, baseEvent);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"{nameof(NavigationHandler)} raised an exception for {this}");
-                Debug.LogException(e);
-            }
+            NavigationHandler.SafelyInvoke(navigateBackCommand, baseEvent);
         }
 
-        private static readonly IStyle _headerRootStyle = new CompactStyle
+        private static readonly IStyle HeaderRootStyle = new CompactStyle
         {
             flexGrow = 0,
             flexShrink = 0,
@@ -102,7 +94,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             {
                 text = _headerText,
             };
-            label.style.ApplyStyles(_headerRootStyle);
+            label.style.ApplyStyles(HeaderRootStyle);
             return label;
         }
         
@@ -129,7 +121,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
                 backgroundPosition = new BackgroundPosition(BackgroundPositionKeyword.Center)
             });
             button.AddManipulator(_backButtonNavigationManipulator);
-            button.style.ApplyStyles(_headerRootStyle);
+            button.style.ApplyStyles(HeaderRootStyle);
             button.Add(backIcon);
             return button;
         }
