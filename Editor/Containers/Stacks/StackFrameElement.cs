@@ -11,12 +11,9 @@ using UnityEngine.UIElements;
 namespace Polymorphism4Unity.Editor.Containers.Stacks
 {
     [UxmlElement(nameof(StackFrameElement))]
-    public sealed partial class StackFrameElement : VisualElement
+    public partial class StackFrameElement : VisualElement
     {
-        // private const string AnimatingOutClassName = "poly-stackframe__animating-out";
-        // private const string StableClassName = "poly-stackframe__stable";
-        // private const string AnimatingInClassName = "poly-stackframe__animating-in";
-        public override VisualElement contentContainer { get; }
+        public sealed override VisualElement contentContainer { get; }
         private StackFrameHeader? _maybeHeader;
 
         private string _headerText = string.Empty;
@@ -123,6 +120,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             registrationSet.AttachedToTask(taskCompletionSource.Task);
             return taskCompletionSource.Task;
         }
+        
         public Task AnimateOut()
         {
             using RegistrationSet registrationSet = new(this);

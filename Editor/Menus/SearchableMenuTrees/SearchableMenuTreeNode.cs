@@ -13,26 +13,12 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
     public abstract class SearchableMenuTreeNode<T>
     {
         public string Key { get; }
-      
-        protected SearchableMenuTreeNode(string key)
+        public bool HasNext { get; }
+
+        protected SearchableMenuTreeNode(string key, bool hasNext)
         {
             Key = key;
-            // _nextIcon.style.ApplyStyles(new CompactStyle
-            // {
-            //     backgroundImage = EditorGUIUtility.IconContent("Arrownavigationright@2x").image as Texture2D,
-            //     height = 15,
-            //     width = 15,
-            //     margin = 0,
-            //     padding = 0,
-            //     borderWidth = 0,
-            //     alignSelf = Align.Center,
-            //     backgroundPosition = new BackgroundPosition(BackgroundPositionKeyword.Center)
-            // });
-            // style.ApplyStyles(new CompactStyle
-            // {
-            //     justifyContent = Justify.SpaceBetween
-            // });
-            // ShowNextIcon = showNextIcon;
+            HasNext = hasNext;
         }
 
         public int CompareTo(SearchableMenuTreeNode<T> other)
@@ -55,18 +41,19 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
     
     public class SearchMenuTreeParentNode<T>: SearchableMenuTreeNode<T>
     {
-        public List<SearchableMenuTreeNode<T>> ChildNodes { get; } = new();
+        public List<SearchableMenuTreeNode<T>> ChildNodes { get; }
             
-        public SearchMenuTreeParentNode(string name): base(name)
+        public SearchMenuTreeParentNode(string name, List<SearchableMenuTreeNode<T>> childNodes): base(name, true)
         {
+            ChildNodes = childNodes;
         }
-    }     
+    }
 
     public class SearchableMenuTreeLeafNode<T> : SearchableMenuTreeNode<T>
     {
-        public T Value { get; set; }
+        public T Value { get; }
 
-        public SearchableMenuTreeLeafNode(string name, T value): base(name)
+        public SearchableMenuTreeLeafNode(string name, T value, bool hasNext): base(name, hasNext)
         {
             Value = value;
         }

@@ -13,6 +13,8 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 
         [UxmlAttribute]
         public string Path { get; set; } = String.Empty;
+
+        public bool HasNext { get; set; } = false;
         
 #nullable disable
         [UxmlAttribute]

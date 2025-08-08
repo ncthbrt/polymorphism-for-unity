@@ -1,22 +1,19 @@
 ﻿#nullable enable
 using System.Collections.Generic;
-using Polymorphism4Unity.Editor.Commands;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using UnityEngine.UIElements;
-using System.Linq;
 using Polymorphism4Unity.Editor.Styling;
 
 namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 {
     public class SearchableMenuTreeListView<T>: ListView
-        where T: VisualElement, new()
     {   
-        private RegistrationSet? _registrationSet = null;
+        private RegistrationSet? _registrationSet;
         
-        public SearchableMenuTreeListView(List<T> results)
+        public SearchableMenuTreeListView(List<SearchableMenuTreeNode<T>> nodes)
         {
-            itemsSource = results;
+            itemsSource = nodes;
             showAddRemoveFooter = false;
             showBorder = false;
             showAlternatingRowBackgrounds = AlternatingRowBackground.All;
@@ -38,24 +35,21 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 
         private VisualElement MakeItem()
         {
-            VisualElement element = new();
-            element.style.ApplyStyles(new CompactStyle
-            {
-                margin = 0,
-                padding = 0,
-            });
+            SearchableMenuTreeElement<T> element = new();
             return element;
         }
 
         private void BindItem(VisualElement element, int index)
         {
             Asserts.IsLess(index, itemsSource.Count);
-            element.Add((VisualElement)itemsSource[index]);
+            SearchableMenuTreeElement<T> searchableMenuTreeElement = (SearchableMenuTreeElement<T>)element;
+            searchableMenuTreeElement.Node = (SearchableMenuTreeNode<T>)itemsSource[index]; 
         }
 
         private void UnbindItem(VisualElement element, int index)
         {
-            element.Clear();
+            SearchableMenuTreeElement<T> searchableMenuTreeElement = (SearchableMenuTreeElement<T>)element;
+            searchableMenuTreeElement.Node = null;
         }
 
         protected virtual void HandleAttachToPanelEvent(AttachToPanelEvent _)
