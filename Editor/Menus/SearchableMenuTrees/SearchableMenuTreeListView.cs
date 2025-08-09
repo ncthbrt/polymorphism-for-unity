@@ -1,16 +1,21 @@
 ﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using UnityEngine.UIElements;
 using Polymorphism4Unity.Editor.Styling;
+using UnityEditor;
+using UnityEngine;
 
 namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 {
-    public class SearchableMenuTreeListView<T>: ListView
+    public class SearchableMenuTreeListView<T, TElement>: ListView
+        where TElement: SearchableMenuTreeElement<T>, new()
     {   
         private RegistrationSet? _registrationSet;
-        
+        private int PageSize => Mathf.CeilToInt(resolvedStyle.height / EditorGUIUtility.singleLineHeight);
+
         public SearchableMenuTreeListView(List<SearchableMenuTreeNode<T>> nodes)
         {
             itemsSource = nodes;
@@ -24,6 +29,8 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             bindItem = BindItem;
             unbindItem = UnbindItem;
             delegatesFocus = true;
+            fixedItemHeight = EditorGUIUtility.singleLineHeight;
+            virtualizationMethod = CollectionVirtualizationMethod.FixedHeight;
             if (childCount > 0)
             {
                 SetSelection(0);
@@ -33,37 +40,59 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             RegisterCallback<DetachFromPanelEvent>(HandleDetachFromPanelEvent);
         }
 
-        private VisualElement MakeItem()
+        private static VisualElement MakeItem()
         {
-            SearchableMenuTreeElement<T> element = new();
+            TElement element = new();
             return element;
         }
 
         private void BindItem(VisualElement element, int index)
         {
             Asserts.IsLess(index, itemsSource.Count);
-            SearchableMenuTreeElement<T> searchableMenuTreeElement = (SearchableMenuTreeElement<T>)element;
+            TElement searchableMenuTreeElement = (TElement)element;
             searchableMenuTreeElement.Node = (SearchableMenuTreeNode<T>)itemsSource[index]; 
         }
 
         private void UnbindItem(VisualElement element, int index)
         {
-            SearchableMenuTreeElement<T> searchableMenuTreeElement = (SearchableMenuTreeElement<T>)element;
+            TElement searchableMenuTreeElement = (TElement)element;
             searchableMenuTreeElement.Node = null;
         }
 
-        protected virtual void HandleAttachToPanelEvent(AttachToPanelEvent _)
+        private void HandleAttachToPanelEvent(AttachToPanelEvent _)
         {
             Asserts.IsNull(_registrationSet);
             _registrationSet = new RegistrationSet(this);
-
         }
 
-        protected virtual void HandleDetachFromPanelEvent(DetachFromPanelEvent _)
+        private void HandleDetachFromPanelEvent(DetachFromPanelEvent _)
         {
             Asserts.IsNotNull(_registrationSet).Dispose();
             _registrationSet = null;
         }
+
+
+        public void PageDown()
+        {
+            int pageSize = PageSize;
+            int newIndex = Math.Min(selectedIndex + pageSize, itemsSource.Count - 1);
+            Select(newIndex);
+            Focus();
+        }
         
+        public void PageUp()
+        {
+            int pageSize = PageSize;
+            int newIndex = Math.Max(selectedIndex - pageSize, 0);
+            Select(newIndex);
+            Focus();
+        }
+
+        public void Select(int index)
+        {
+            selectedIndex = index;
+            ScrollToItem(selectedIndex);
+        }
+
     }
 }

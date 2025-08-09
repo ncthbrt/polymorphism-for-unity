@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 {
     [PublicAPI]
-    public class SearchableMenuTreeIndexEntry<T> where T: class
+    public class SearchableMenuTreeIndexEntry<T>
     {
         public string SearchTerm { get; }
         public SearchableMenuTreeEntry<T>? Item { get; }

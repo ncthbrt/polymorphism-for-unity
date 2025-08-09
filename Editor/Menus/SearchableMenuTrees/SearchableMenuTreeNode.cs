@@ -10,7 +10,7 @@ using UnityEngine.UIElements;
 
 namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 {
-    public abstract class SearchableMenuTreeNode<T>
+    public abstract class SearchableMenuTreeNode<T>: IComparable<SearchableMenuTreeNode<T>>
     {
         public string Key { get; }
         public bool HasNext { get; }

@@ -1,46 +1,46 @@
 ﻿#nullable enable
+// ReSharper disable AsyncVoidMethod
+// We're handling all possible exceptions thrown by tasks, Resharper is just not smart enough to know it
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Polymorphism4Unity.Editor.Commands;
 using Polymorphism4Unity.Editor.Containers.Stacks;
-using Polymorphism4Unity.Editor.Styling;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using Raffinert.FuzzySharp.Extractor;
-using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using Debug = UnityEngine.Debug;
 using FuzzSearch = Raffinert.FuzzySharp.Process;
-// ReSharper disable AsyncVoidMethod
-// We're handling all possible exceptions thrown by tasks, Resharper is just not smart enough to know it
-
 namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 {
     [PublicAPI]
-    public abstract class SearchableMenuTree<T>: StackView
+    public abstract class SearchableMenuTree<T, TSearchToolbar, TElement>: StackView
         where T: class
+        where TSearchToolbar: SearchableMenuTreeSearchToolbar<T>, new()
+        where TElement: SearchableMenuTreeElement<T>, new()
     {
         private RegistrationSet? _registrationSet;
-        private SearchableMenuTreeFrame<T>? _initialStackFrame;
+        private SearchableMenuTreeFrame<T, TSearchToolbar, TElement>? _initialStackFrame;
         private SearchableMenuTreeIndexEntry<T>[]? _searchIndex;
         protected abstract IEnumerable<SearchableMenuTreeEntry<T>> Items { get; }
 
         public Action<T?> OnSelected { get; set; } = _ => { };
+
+        private string _headerText = "";
         
         [UxmlAttribute]
-        public string? HeaderText
+        public string HeaderText
         {
-            get => _initialStackFrame?.HeaderText;
+            get => _headerText;
             set
             {
+                _headerText = value;
                 if (_initialStackFrame != null)
                 {
-                    _initialStackFrame.HeaderText = value ?? string.Empty;
+                    _initialStackFrame.HeaderText = _headerText;
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             else if(treeElement.Node is {} node)
             {
                 SearchMenuTreeParentNode<T> parentNode = Asserts.IsType<SearchMenuTreeParentNode<T>>(node);
-                SearchableMenuTreeFrame<T> stackFrame = new(parentNode.ChildNodes)
+                SearchableMenuTreeFrame<T, TSearchToolbar, TElement> stackFrame = new(parentNode.ChildNodes)
                 {
                     HeaderText = parentNode.Key
                 };
@@ -115,7 +115,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
                 index, 
                 item => item.SearchTerm,
                 limit: int.MaxValue,
-                  cutoff: 75 // This is a little arbitrary tbqh
+                cutoff: 75 // This is a little arbitrary tbqh
             );
             return searchResults.ToArray();
         }
@@ -126,7 +126,10 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             List<SearchableMenuTreeNode<T>> treeRoots = ConstructTree(items);
             _searchIndex = ConstructIndex(items);
             ClearAll();
-            _initialStackFrame = new SearchableMenuTreeFrame<T>(treeRoots);
+            _initialStackFrame = new SearchableMenuTreeFrame<T, TSearchToolbar, TElement>(treeRoots)
+            {
+                HeaderText = _headerText
+            };
             PushWithoutAnimate(_initialStackFrame);
         }
 
@@ -171,7 +174,6 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
                     }
                 }
                 string leafName = parts[^1];
-                
                 SearchableMenuTreeLeafNode<T> leafNode = new(leafName, item.Value, item.HasNext);
                 current.ChildNodes.Add(leafNode);
             }
@@ -179,49 +181,6 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             Array.Sort(results);
             CreateShortcuts(results);
             return results.ToList();
-        }
-
-        protected virtual StackFrameElement CreateFrame(SearchMenuTreeParentNode<T> parentNode)
-        {
-            StackFrameElement stackFrame = new()
-            {
-                name = parentNode.Key,
-                HeaderText = parentNode.Key
-            };
-            VisualElement searchToolbar = CreateSearchToolbar(parentNode);
-            stackFrame.Add(searchToolbar);
-            ListView listView = new()
-            {
-                showBorder = false,
-                showAddRemoveFooter = false,
-                showFoldoutHeader = false,
-                showBoundCollectionSize = false,
-                fixedItemHeight = EditorGUIUtility.singleLineHeight,
-                virtualizationMethod = CollectionVirtualizationMethod.FixedHeight
-            };
-            listView.style.ApplyStyles(new CompactStyle
-            {
-                flex = 1
-            });
-            stackFrame.Add(listView);
-            return stackFrame;
-        }
-        
-        protected virtual VisualElement CreateSearchToolbar(SearchMenuTreeParentNode<T> parentNode)
-        {
-            Toolbar toolbar = new()
-            {
-                name = "SearchToolbar"
-            };
-            ToolbarSearchField searchField = new()
-            {
-                name = "SearchField"
-            };
-            searchField.style.ApplyStyles(new CompactStyle
-            {
-                flex = 1 
-            });
-            return toolbar;
         }
     }
 }
