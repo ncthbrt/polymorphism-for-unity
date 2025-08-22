@@ -80,7 +80,9 @@ namespace Polymorphism4Unity.Editor.Styling
         public StyleInt unitySliceRight { get; set; }
         public StyleFloat unitySliceScale { get; set; }
         public StyleInt unitySliceTop { get; set; }
+#if UNITY_6000_2_OR_NEWER        
         public StyleEnum<SliceType> unitySliceType { get; set; }
+#endif
         public StyleEnum<TextAnchor> unityTextAlign { get; set; }
         public StyleEnum<TextGeneratorType> unityTextGenerator { get; set; }
         public StyleColor unityTextOutlineColor { get; set; }

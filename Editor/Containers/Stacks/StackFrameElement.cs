@@ -55,8 +55,6 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             }
         }
         
-        public Action OnNavigateBack { get; set; } = () => { };
-        
         public StackFrameElement()
         {
             style.ApplyStyles(new CompactStyle

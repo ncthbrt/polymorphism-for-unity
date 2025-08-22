@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Polymorphism4Unity.Editor.Commands;
 using Polymorphism4Unity.Editor.Containers.Stacks;
+using Polymorphism4Unity.Editor.Events;
 using Polymorphism4Unity.Editor.Utils;
 using Polymorphism4Unity.Safety;
 using Raffinert.FuzzySharp.Extractor;
@@ -18,7 +19,6 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
 {
     [PublicAPI]
     public abstract class SearchableMenuTree<T, TSearchToolbar, TElement>: StackView
-        where T: class
         where TSearchToolbar: SearchableMenuTreeSearchToolbar<T>, new()
         where TElement: SearchableMenuTreeElement<T>, new()
     {
@@ -26,9 +26,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         private SearchableMenuTreeFrame<T, TSearchToolbar, TElement>? _initialStackFrame;
         private SearchableMenuTreeIndexEntry<T>[]? _searchIndex;
         protected abstract IEnumerable<SearchableMenuTreeEntry<T>> Items { get; }
-
-        public Action<T?> OnSelected { get; set; } = _ => { };
-
+        
         private string _headerText = "";
         
         [UxmlAttribute]
@@ -45,7 +43,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             }
         }
 
-        protected SearchableMenuTree()
+        public SearchableMenuTree()
         {
             RegisterCallback<AttachToPanelEvent>(HandleAttachToPanelEvent);
             RegisterCallback<DetachFromPanelEvent>(HandleDetachFromPanelEvent);
@@ -71,14 +69,14 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         {
             if (IsEmpty)
             {
-                OnSelected.SafelyInvoke(null);
+                ItemSelectedEvent<T> itemSelectedEvent = ItemSelectedEvent<T>.GetPooled(default);
+                SendEvent(itemSelectedEvent);
             }
             else
             {
                 await TryPopAsync().SwallowAndLogExceptions();
             }
         }
-     
         
         private async void HandleNavigateSubmitCommand(NavigateSubmitCommand command)
         {
@@ -86,7 +84,8 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             SearchableMenuTreeElement<T> treeElement = Asserts.IsType<SearchableMenuTreeElement<T>>(commandTarget);
             if (treeElement.Node is SearchableMenuTreeLeafNode<T> leaf)
             {
-                OnSelected.SafelyInvoke(leaf.Value);
+                ItemSelectedEvent<T> itemSelectedEvent = ItemSelectedEvent<T>.GetPooled(leaf.Value);
+                SendEvent(itemSelectedEvent);
             } 
             else if(treeElement.Node is {} node)
             {
@@ -98,15 +97,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
                 await PushAsync(stackFrame).SwallowAndLogExceptions();
             }
         }
-
-        private static SearchableMenuTreeIndexEntry<T>[] ConstructIndex(IEnumerable<SearchableMenuTreeEntry<T>> items)
-        {
-            return items.SelectMany(item => 
-            {
-                return item.SearchTerms.Select(term =>  new SearchableMenuTreeIndexEntry<T>(term, item));
-            }).ToArray();
-        }
-
+        
         private static ExtractedResult<SearchableMenuTreeIndexEntry<T>>[] SearchIndex(SearchableMenuTreeIndexEntry<T>[] index, string searchTerm)
         {
             SearchableMenuTreeIndexEntry<T> searchIndexEntry = new(searchTerm);
@@ -124,7 +115,6 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         {
             SearchableMenuTreeEntry<T>[] items = Items.ToArray();
             List<SearchableMenuTreeNode<T>> treeRoots = ConstructTree(items);
-            _searchIndex = ConstructIndex(items);
             ClearAll();
             _initialStackFrame = new SearchableMenuTreeFrame<T, TSearchToolbar, TElement>(treeRoots)
             {
@@ -174,7 +164,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
                     }
                 }
                 string leafName = parts[^1];
-                SearchableMenuTreeLeafNode<T> leafNode = new(leafName, item.Value, item.HasNext);
+                SearchableMenuTreeLeafNode<T> leafNode = new(leafName, item.Value, item.SearchTerms, item.HasNext);
                 current.ChildNodes.Add(leafNode);
             }
             SearchableMenuTreeNode<T>[] results = intermediate.ChildNodes.ToArray();

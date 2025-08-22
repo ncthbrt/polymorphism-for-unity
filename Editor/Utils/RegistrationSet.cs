@@ -14,27 +14,27 @@ namespace Polymorphism4Unity.Editor.Utils
     
     internal class RegistrationSet: IDisposable
     {
-        private readonly CallbackEventHandler _handler;
+        private readonly VisualElement _target;
         private readonly Dictionary<(object callback, TrickleDown useTrickleDown), Action> _listeners = new();
         private readonly SynchronizationContext _synchronizationContext;
 
-        public RegistrationSet(CallbackEventHandler handler)
+        public RegistrationSet(VisualElement target)
         {
-            _handler = handler;
+            _target = target;
             _synchronizationContext = SynchronizationContext.Current;
         }
         
         public void RegisterCallback<TEvent>(EventCallback<TEvent> callback, TrickleDown useTrickleDown = TrickleDown.NoTrickleDown)
             where TEvent: EventBase<TEvent>, new()
         {
-            _handler.RegisterCallback(callback);
-            _listeners.Add((callback, useTrickleDown), () => _handler.UnregisterCallback(callback, useTrickleDown));
+            _target.RegisterCallback(callback);
+            _listeners.Add((callback, useTrickleDown), () => _target.UnregisterCallback(callback, useTrickleDown));
         }
 
         public bool UnregisterCallback<TEventType>(EventCallback<TEventType> callback, TrickleDown useTrickleDown = TrickleDown.NoTrickleDown)
             where TEventType: EventBase<TEventType>, new()
         {
-            _handler.UnregisterCallback(callback);
+            _target.UnregisterCallback(callback);
             return _listeners.Remove((callback, useTrickleDown));
         }
         
@@ -42,8 +42,8 @@ namespace Polymorphism4Unity.Editor.Utils
             where TEventType: EventBase<TEventType>, new()
         {
             #if HAS_REGISTER_CALLBACK_ONCE
-            _handler.RegisterCallbackOnce(callback);
-            _listeners.Add((callback, useTrickleDown), () => { _handler.UnregisterCallback(callback, useTrickleDown); });
+            _target.RegisterCallbackOnce(callback);
+            _listeners.Add((callback, useTrickleDown), () => { _target.UnregisterCallback(callback, useTrickleDown); });
             #else
             void Handler(TEventType evt)
             {
@@ -70,6 +70,20 @@ namespace Polymorphism4Unity.Editor.Utils
                     ((RegistrationSet)self).Dispose();
                 }, this);
             });
+        }
+        
+        public void AddManipulator<TManipulator>(TManipulator manipulator)
+            where TManipulator: Manipulator
+        {
+            _target.AddManipulator(manipulator);
+            _listeners.Add((manipulator, TrickleDown.NoTrickleDown), () => _target.RemoveManipulator(manipulator));
+        }
+        
+        public void RemoveManipulator<TManipulator>(TManipulator manipulator)
+            where TManipulator: Manipulator
+        {
+            _target.RemoveManipulator(manipulator);
+            _listeners.Remove((manipulator, TrickleDown.NoTrickleDown));
         }
         
         public void Dispose()

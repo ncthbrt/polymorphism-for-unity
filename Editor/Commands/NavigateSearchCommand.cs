@@ -1,6 +1,4 @@
-﻿using UnityEngine.UIElements;
-
-namespace Polymorphism4Unity.Editor.Commands
+﻿namespace Polymorphism4Unity.Editor.Commands
 {
     public class NavigateSearchCommand: AbstractNavigationCommand<NavigateSearchCommand>
     {

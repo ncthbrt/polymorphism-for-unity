@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using Polymorphism4Unity.Enums;
+using UnityEngine;
 using static Polymorphism4Unity.Enums.TypesFilter;
 
 namespace Polymorphism4Unity.Editor.Utils
@@ -47,6 +48,14 @@ namespace Polymorphism4Unity.Editor.Utils
                 return false;
             }
             if (!t.HasDefaultPublicConstructor() && filter.HasFlag(HasDefaultPublicConstructor))
+            {
+                return false;
+            }
+            if (t.Is<ScriptableObject>() && !filter.HasFlag(MonoBehaviours))
+            {
+                return false;
+            }
+            if (t.Is<ScriptableObject>() && !filter.HasFlag(ScriptableObjects))
             {
                 return false;
             }

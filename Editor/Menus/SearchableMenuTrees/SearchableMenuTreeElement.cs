@@ -2,7 +2,6 @@
 using Polymorphism4Unity.Editor.Styling;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
 using UnityEngine.UIElements;
 using TextElement = UnityEngine.UIElements.TextElement;
 

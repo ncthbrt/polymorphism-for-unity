@@ -42,7 +42,7 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
     public class SearchMenuTreeParentNode<T>: SearchableMenuTreeNode<T>
     {
         public List<SearchableMenuTreeNode<T>> ChildNodes { get; }
-            
+        
         public SearchMenuTreeParentNode(string name, List<SearchableMenuTreeNode<T>> childNodes): base(name, true)
         {
             ChildNodes = childNodes;
@@ -52,10 +52,12 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
     public class SearchableMenuTreeLeafNode<T> : SearchableMenuTreeNode<T>
     {
         public T Value { get; }
+        public List<string> SearchTerms { get; }
 
-        public SearchableMenuTreeLeafNode(string name, T value, bool hasNext): base(name, hasNext)
+        public SearchableMenuTreeLeafNode(string name, T value, List<string> searchTerms, bool hasNext): base(name, hasNext)
         {
             Value = value;
+            SearchTerms = searchTerms;
         }
     }
 }

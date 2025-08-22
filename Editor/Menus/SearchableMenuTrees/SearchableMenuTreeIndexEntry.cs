@@ -7,9 +7,9 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
     public class SearchableMenuTreeIndexEntry<T>
     {
         public string SearchTerm { get; }
-        public SearchableMenuTreeEntry<T>? Item { get; }
+        public SearchableMenuTreeLeafNode<T>? Item { get; }
             
-        public SearchableMenuTreeIndexEntry(string searchTerm, SearchableMenuTreeEntry<T>? item = null)
+        public SearchableMenuTreeIndexEntry(string searchTerm, SearchableMenuTreeLeafNode<T>? item = null)
         {
             SearchTerm = searchTerm;
             Item = item;

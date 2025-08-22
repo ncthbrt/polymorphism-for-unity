@@ -1,22 +1,17 @@
 ﻿#nullable enable
 using System;
 using Polymorphism4Unity.Editor.Commands;
-using Polymorphism4Unity.Editor.Menus.SearchableMenuTrees;
-using Polymorphism4Unity.Editor.Utils;
-using Polymorphism4Unity.Safety;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Polymorphism4Unity.Editor.Manipulators
 {
-    public class MenuTreeNavigationManipulator<T> : Manipulator
+    public class MenuTreeNavigationManipulator : Manipulator
     {
         private readonly KeyboardNavigationManipulator _keyboardNavigationManipulator;
-        public Action<INavigationCommand, EventBase> NavigationHandler { get; set; }
 
-        public MenuTreeNavigationManipulator(Action<INavigationCommand, EventBase> navigationHandler)
+        public MenuTreeNavigationManipulator()
         {
-            NavigationHandler = navigationHandler;
             _keyboardNavigationManipulator = new KeyboardNavigationManipulator(HandleKeyboardNavigationEvent);
         }
 
@@ -35,6 +30,22 @@ namespace Polymorphism4Unity.Editor.Manipulators
 
         private void HandleKeyUpEvent(KeyUpEvent upEvent)
         {
+            if (upEvent.keyCode == KeyCode.Backspace)
+            {
+                NavigateBackCommand command = NavigateBackCommand.GetPooled();
+                command.target = target;
+                command.BaseEvent = upEvent;
+                upEvent.StopPropagation();
+                target.SendEvent(command);
+            }
+            else if (upEvent.keyCode == KeyCode.Escape)
+            {
+                NavigateCancelCommand command = NavigateCancelCommand.GetPooled();
+                command.target = target;
+                command.BaseEvent = upEvent;
+                upEvent.StopPropagation();
+                target.SendEvent(command);
+            }
             char upEventCharacter = upEvent.character;
             if (upEventCharacter != '\0')
             {
@@ -42,7 +53,8 @@ namespace Polymorphism4Unity.Editor.Manipulators
                 command.Character = upEventCharacter;
                 upEvent.StopPropagation();
                 command.target = target;
-                NavigationHandler.SafelyInvoke(command, upEvent);
+                ((INavigationCommand)command).BaseEvent = upEvent;
+                target.SendEvent(command);
             }
         }
 
@@ -57,6 +69,7 @@ namespace Polymorphism4Unity.Editor.Manipulators
                 case KeyboardNavigationOperation.MoveLeft:
                 case KeyboardNavigationOperation.Cancel:
                 {
+                    
                     command = NavigateBackCommand.GetPooled();
                     break;
                 }
@@ -102,7 +115,8 @@ namespace Polymorphism4Unity.Editor.Manipulators
                 }
             }
             command.target = target;
-            NavigationHandler.SafelyInvoke(Asserts.IsType<INavigationCommand>(command), baseEvent);
+            ((INavigationCommand)command).BaseEvent = baseEvent;
+            target.SendEvent(command);
         }
     }
 }

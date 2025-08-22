@@ -73,7 +73,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             _frameStack.Clear();
         }
         
-        #region  Public Api
+        #region Public Api
 
         public void PushWithoutAnimate(StackFrameElement frame)
         {

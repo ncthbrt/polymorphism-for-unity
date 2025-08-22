@@ -1,11 +1,7 @@
 #nullable enable
-using System;
 using JetBrains.Annotations;
-using Polymorphism4Unity.Editor.Commands;
 using Polymorphism4Unity.Editor.Manipulators;
 using Polymorphism4Unity.Editor.Styling;
-using Polymorphism4Unity.Editor.Utils;
-using Polymorphism4Unity.Safety;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -56,21 +52,8 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
         }
         
         private TextElement? _contents;
-        private readonly BackButtonNavigationManipulator _backButtonNavigationManipulator;
-        public Action<INavigationCommand, EventBase> NavigationHandler { get; set; } = (_, _) => { };
-        public StackFrameHeader()
-        {
-            // NavigationHandler = navigationHandler;
-            _backButtonNavigationManipulator = new BackButtonNavigationManipulator(HandleNavigationEvent);
-        }
-
-        private void HandleNavigationEvent(INavigationCommand navigateBackCommand, EventBase baseEvent)
-        {
-            Asserts.IsNotNull(NavigationHandler);
-            NavigationHandler.SafelyInvoke(navigateBackCommand, baseEvent);
-        }
-
-        private static readonly IStyle HeaderRootStyle = new CompactStyle
+        private readonly BackButtonNavigationManipulator _backButtonNavigationManipulator = new();
+        private static readonly IStyle _headerRootStyle = new CompactStyle
         {
             flexGrow = 0,
             flexShrink = 0,
@@ -94,7 +77,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
             {
                 text = _headerText,
             };
-            label.style.ApplyStyles(HeaderRootStyle);
+            label.style.ApplyStyles(_headerRootStyle);
             return label;
         }
         
@@ -121,7 +104,7 @@ namespace Polymorphism4Unity.Editor.Containers.Stacks
                 backgroundPosition = new BackgroundPosition(BackgroundPositionKeyword.Center)
             });
             button.AddManipulator(_backButtonNavigationManipulator);
-            button.style.ApplyStyles(HeaderRootStyle);
+            button.style.ApplyStyles(_headerRootStyle);
             button.Add(backIcon);
             return button;
         }

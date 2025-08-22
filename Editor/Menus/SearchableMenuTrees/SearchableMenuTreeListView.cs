@@ -16,9 +16,16 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
         private RegistrationSet? _registrationSet;
         private int PageSize => Mathf.CeilToInt(resolvedStyle.height / EditorGUIUtility.singleLineHeight);
 
-        public SearchableMenuTreeListView(List<SearchableMenuTreeNode<T>> nodes)
+        public List<SearchableMenuTreeNode<T>> Nodes
         {
-            itemsSource = nodes;
+            get => (List<SearchableMenuTreeNode<T>>)(itemsSource);
+            set => itemsSource = value;
+        }
+        
+
+        public SearchableMenuTreeListView(List<SearchableMenuTreeNode<T>>? nodes = null)
+        {
+            Nodes = nodes ?? new List<SearchableMenuTreeNode<T>>();
             showAddRemoveFooter = false;
             showBorder = false;
             showAlternatingRowBackgrounds = AlternatingRowBackground.All;
