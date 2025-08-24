@@ -78,7 +78,6 @@ namespace Polymorphism4Unity.Editor.Menus.SearchableMenuTrees
             _registrationSet.RegisterCallback<NavigatePageUpCommand>(HandleNavigatePageUpCommand);
             _registrationSet.RegisterCallback<NavigateTopCommand>(HandleNavigateTopCommand);
             _registrationSet.RegisterCallback<NavigateUpCommand>(HandleNavigateUpCommand);
-            _registrationSet.RegisterCallback<NavigateBackCommand>(HandleNavigateBackCommand);
             _searchToolbarRegistrationSet.RegisterCallback<ChangeEvent<List<SearchableMenuTreeNode<T>>?>>(HandleSearchChanged);
         }
 

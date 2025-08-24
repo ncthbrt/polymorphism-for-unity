@@ -91,14 +91,14 @@ namespace Polymorphism4Unity.Editor.Menus.TypeMenus
                 }
                 else
                 {
-                    // We need to push a new item on the stack that 
+                    // We need to push a new item on the stack that holds the generic menu stack
                     @event.StopPropagation();
                 }
             }
             else
             {
                 NavigateCloseCommand navigateCloseCommand = NavigateCloseCommand.GetPooled();
-                
+                SendEvent(navigateCloseCommand);
             }
         }
 
